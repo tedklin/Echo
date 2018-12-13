@@ -425,9 +425,9 @@ def attitude_callback(self, attr_name, msg):
 
 def velocity_callback(self, attr_name, msg):
     print("")
-    print("Velocity (x)" + str(msg[0]));
-    print("Velocity (y)" + str(msg[1]));
-    print("Velocity (z)" + str(msg[2]));
+    print("Velocity (x): " + str(msg[0]));
+    print("Velocity (y): " + str(msg[1]));
+    print("Velocity (z): " + str(msg[2]));
     print("")
 
 
@@ -438,7 +438,6 @@ def general_callback(self, attr_name, msg):
 vehicle.add_attribute_listener('location.global_frame', general_callback)
 vehicle.add_attribute_listener('attitude', general_callback)
 vehicle.add_attribute_listener('velocity', velocity_callback)
-
 # === Attribute listener (callback method) === #
 
 
