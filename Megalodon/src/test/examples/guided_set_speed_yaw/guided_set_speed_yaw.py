@@ -314,10 +314,16 @@ def goto(dNorth, dEast, gotoFunction=vehicle.simple_goto):
     #print "DEBUG: targetLocation: %s" % targetLocation
     #print "DEBUG: targetLocation: %s" % targetDistance
 
-    while vehicle.mode.name=="GUIDED": #Stop action if we are no longer in guided mode.
+    while vehicle.mode.name == "GUIDED": #Stop action if we are no longer in guided mode.
         #print "DEBUG: mode: %s" % vehicle.mode.name
-        remainingDistance=get_distance_metres(vehicle.location.global_relative_frame, targetLocation)
+        remainingDistance = get_distance_metres(vehicle.location.global_relative_frame, targetLocation)
         print("Distance to target: ", remainingDistance)
+        print("Attitude Yaw: ", (vehicle.attitude.yaw * math.pi / 180))
+        print("Attitude Pitch: ", (vehicle.attitude.pitch * math.pi / 180))
+        print("Attitude Roll", (vehicle.attitude.roll * math.pi / 180))
+        print("Vehicle groundspeed", (vehicle.groundspeed))
+        print("Vehicle velocity", (vehicle.velocity))
+        print("")
         if remainingDistance<=targetDistance*0.01: #Just below target, in case of undershoot.
             print("Reached target")
             break;
