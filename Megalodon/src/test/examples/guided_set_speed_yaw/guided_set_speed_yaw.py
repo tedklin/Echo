@@ -414,31 +414,47 @@ def send_global_velocity(velocity_x, velocity_y, velocity_z, duration):
         time.sleep(1)
 
 
-# attribute listener for the vehicle's current location (callback method)
-# Callbacks to print vehicle states
+# === Attribute listener (callback method) === #
 def location_callback(self, attr_name, msg):
-    print(msg)
+    print("Location: " + msg)
 
 
 def attitude_callback(self, attr_name, msg):
+    print("Attitude: " + msg)
+
+
+def velocity_callback(self, attr_name, msg):
+    print("")
+    print("Velocity (x)" + str(msg[0]));
+    print("Velocity (y)" + str(msg[1]));
+    print("Velocity (z)" + str(msg[2]));
+    print("")
+
+
+def general_callback(self, attr_name, msg):
     print(msg)
 
 
-vehicle.add_attribute_listener('location.global_frame', location_callback)
-vehicle.add_attribute_listener('attitude', attitude_callback)
+vehicle.add_attribute_listener('location.global_frame', general_callback)
+vehicle.add_attribute_listener('attitude', general_callback)
+vehicle.add_attribute_listener('velocity', velocity_callback)
 
-# attribute listener (custom method)
+# === Attribute listener (callback method) === #
+
+
+# === Attribute listener (functional method) === #
 # be careful with this, this listener is not removable
-@vehicle.on_attribute('attitude')
-def attitude_listener(self, name, msg):
-    # print('%s attribute is: %s' % (name, msg))
-    print(msg)
-
-
-@vehicle.on_attribute('location.global_frame')
-def attitude_listener(self, name, msg):
-    # print('%s attribute is: %s' % (name, msg))
-    print(msg)
+# @vehicle.on_attribute('attitude')
+# def attitude_listener(self, name, msg):
+#     # print('%s attribute is: %s' % (name, msg))
+#     print(msg)
+#
+#
+# @vehicle.on_attribute('location.global_frame')
+# def attitude_listener(self, name, msg):
+#     # print('%s attribute is: %s' % (name, msg))
+#     print(msg)
+# === Attribute listener (functional method) === #
 
 
 """
@@ -670,8 +686,9 @@ The example is completing. LAND at current location.
 print("Setting LAND mode...")
 vehicle.mode = VehicleMode("LAND")
 
-vehicle.remove_attribute_listener('location.global_frame', location_callback)
-vehicle.remove_attribute_listener('attitude', attitude_callback)
+vehicle.remove_attribute_listener('location.global_frame', general_callback)
+vehicle.remove_attribute_listener('attitude', general_callback)
+vehicle.remove_attribute_listener('velocity', velocity_callback)
 
 # Close vehicle object before exiting script
 print("Close vehicle object")
