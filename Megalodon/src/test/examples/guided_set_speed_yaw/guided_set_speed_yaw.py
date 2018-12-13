@@ -414,13 +414,25 @@ def send_global_velocity(velocity_x, velocity_y, velocity_z, duration):
         time.sleep(1)
 
 
-#Callback to print the location in global frame
+#Callbacks to print vehicle states
 def location_callback(self, attr_name, msg):
     print("Location (Global): ", msg)
 
-#Add observer for the vehicle's current location
-vehicle.add_attribute_listener('location.global_frame', location_callback)
 
+@vehicle.on_attribute('attitude')
+def attitude_listener(self, name, msg):
+    # print('%s attribute is: %s' % (name, msg))
+    print(msg)
+
+@vehicle.on_attribute('location.global_frame')
+def attitude_listener(self, name, msg):
+    # print('%s attribute is: %s' % (name, msg))
+    print(msg)
+
+
+#Add observer for the vehicle's current location
+# vehicle.add_attribute_listener('location.global_frame', location_callback)
+# vehicle.add_attribute_listener('attitude', attitude_listener)
 
 """
 Fly a triangular path using the standard Vehicle.simple_goto() method.
@@ -651,8 +663,9 @@ The example is completing. LAND at current location.
 print("Setting LAND mode...")
 vehicle.mode = VehicleMode("LAND")
 
-vehicle.remove_attribute_listener('global_frame', location_callback)
-
+vehicle.remove_attribute_listener('location.global_frame', location_callback)
+# vehicle.remove_attribute_listener('attitude.yaw', attitude_callback)
+# vehicle.remove_attribute_listener('attitude', attitude_listener)
 
 #Close vehicle object before exiting script
 print("Close vehicle object")
