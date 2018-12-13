@@ -318,11 +318,11 @@ def goto(dNorth, dEast, gotoFunction=vehicle.simple_goto):
         #print "DEBUG: mode: %s" % vehicle.mode.name
         remainingDistance = get_distance_metres(vehicle.location.global_relative_frame, targetLocation)
         print("Distance to target: ", remainingDistance)
-        print("Attitude Yaw: ", (vehicle.attitude.yaw * math.pi / 180))
-        print("Attitude Pitch: ", (vehicle.attitude.pitch * math.pi / 180))
-        print("Attitude Roll", (vehicle.attitude.roll * math.pi / 180))
-        print("Vehicle groundspeed", (vehicle.groundspeed))
-        print("Vehicle velocity", (vehicle.velocity))
+        # print("Attitude Yaw: ", (vehicle.attitude.yaw * math.pi / 180))
+        # print("Attitude Pitch: ", (vehicle.attitude.pitch * math.pi / 180))
+        # print("Attitude Roll", (vehicle.attitude.roll * math.pi / 180))
+        # print("Vehicle groundspeed", vehicle.groundspeed)
+        # print("Vehicle velocity", vehicle.velocity)
         print("")
         if remainingDistance<=targetDistance*0.01: #Just below target, in case of undershoot.
             print("Reached target")
@@ -411,7 +411,15 @@ def send_global_velocity(velocity_x, velocity_y, velocity_z, duration):
     # send command to vehicle on 1 Hz cycle
     for x in range(0,duration):
         vehicle.send_mavlink(msg)
-        time.sleep(1)    
+        time.sleep(1)
+
+
+#Callback to print the location in global frame
+def location_callback(self, attr_name, msg):
+    print("Location (Global): ", msg)
+
+#Add observer for the vehicle's current location
+vehicle.add_attribute_listener('location.global_frame', location_callback)
 
 
 """
@@ -642,6 +650,8 @@ The example is completing. LAND at current location.
 
 print("Setting LAND mode...")
 vehicle.mode = VehicleMode("LAND")
+
+vehicle.remove_attribute_listener('global_frame', location_callback)
 
 
 #Close vehicle object before exiting script
