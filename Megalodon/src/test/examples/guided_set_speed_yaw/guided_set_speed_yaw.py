@@ -74,11 +74,6 @@ def arm_and_takeoff(aTargetAltitude):
         time.sleep(1)
 
 
-#Arm and take of to altitude of 5 meters
-arm_and_takeoff(5)
-
-
-
 """
 Convenience functions for sending immediate/guided mode commands to control the Copter.
 
@@ -413,6 +408,9 @@ def send_global_velocity(velocity_x, velocity_y, velocity_z, duration):
         vehicle.send_mavlink(msg)
         time.sleep(1)
 
+#Arm and take of to altitude of 5 meters
+arm_and_takeoff(5)
+
 
 # === Attribute listener (callback method) === #
 def location_callback(self, attr_name, msg):
@@ -435,9 +433,10 @@ def general_callback(self, attr_name, msg):
     print(msg)
 
 
-vehicle.add_attribute_listener('location.global_frame', general_callback)
-vehicle.add_attribute_listener('attitude', general_callback)
-vehicle.add_attribute_listener('velocity', velocity_callback)
+# vehicle.add_attribute_listener('location.global_frame', general_callback)
+# vehicle.add_attribute_listener('attitude', general_callback)
+# vehicle.add_attribute_listener('velocity', velocity_callback)
+# vehicle.add_attribute_listener('location.local_frame', general_callback)
 # === Attribute listener (callback method) === #
 
 
@@ -462,7 +461,19 @@ Fly a triangular path using the standard Vehicle.simple_goto() method.
 The method is called indirectly via a custom "goto" that allows the target position to be
 specified as a distance in metres (North/East) from the current position, and which reports
 the distance-to-target.
-"""	
+"""
+
+log1 = open("velocity.csv", 'w')
+log1.write("x-vel, y-vel, z-vel\n")
+
+
+def logged1_callback(self, attr_name, msg):
+    print(msg)
+    log1.write(str(msg[0]) + "," + str(msg[1]) + "," + str(msg[2]) + "\n");
+
+
+vehicle.add_attribute_listener('velocity', logged1_callback)
+
 print("TRIANGLE path using standard Vehicle.simple_goto()")
 
 print("Set groundspeed to 5m/s.")
@@ -477,7 +488,8 @@ goto(0, 100)
 print("Position North -80 West 50")
 goto(-80, -50)
 
-
+vehicle.remove_attribute_listener('velocity', logged1_callback)
+log1.close()
 
 
 """
@@ -685,9 +697,11 @@ The example is completing. LAND at current location.
 print("Setting LAND mode...")
 vehicle.mode = VehicleMode("LAND")
 
-vehicle.remove_attribute_listener('location.global_frame', general_callback)
-vehicle.remove_attribute_listener('attitude', general_callback)
-vehicle.remove_attribute_listener('velocity', velocity_callback)
+# vehicle.remove_attribute_listener('location.global_frame', general_callback)
+# vehicle.remove_attribute_listener('location.local_frame', general_callback)
+# vehicle.remove_attribute_listener('attitude', general_callback)
+# vehicle.remove_attribute_listener('velocity', velocity_callback)
+vehicle.remove_attribute_listener('location.local_frame', logged_callback)
 
 # Close vehicle object before exiting script
 print("Close vehicle object")
