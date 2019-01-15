@@ -523,6 +523,130 @@ vehicle.airspeed = 10
 print("Position North 100 West 130")
 goto(100, -130, goto_position_target_global_int)
 
+print("Position South 200 East 140")
+goto(-200, 140, goto_position_target_global_int)
+
+print("Position Northeast 500")
+goto(250, 250, goto_position_target_global_int)
+
+print("Position North 300 East -300")
+goto(300, -300, goto_position_target_global_int)
+
+print("Position North 200 West 200")
+goto(200, -200, goto_position_target_global_int)
+
+print("Position South 200 East 300")
+goto(-200, 300, goto_position_target_global_int)
+
+print("Position South 300 East 300")
+goto(-300, 300, goto_position_target_global_int)
+
+print("Position North 400 West 300")
+goto(400, -300, goto_position_target_global_int)
+
+print("Position North 300 West 300")
+goto(300, 300, goto_position_target_global_int)
+
+print("Position South 200 West 300")
+goto(200, 300, goto_position_target_global_int)
+
+print("Position South 300 West 300")
+goto(-300, 300, goto_position_target_global_int)
+
+print("Position South 400 West 400")
+goto(-400, 400, goto_position_target_global_int)
+
+print("Position South 500 West 500")
+goto(-500, 500, goto_position_target_global_int)
+
+print("Position South 600 West 600")
+goto(-600, 600, goto_position_target_global_int)
+
+print("Position South 700 West 700")
+goto(-700, 700, goto_position_target_global_int)
+
+print("Position South 800 West 800")
+goto(-800, 800, goto_position_target_global_int)
+
+print("Position South 900 West 900")
+goto(-900, 900, goto_position_target_global_int)
+
+print("Position South 1000 West 1000")
+goto(-1000, 1000, goto_position_target_global_int)
+
+print("Position South 1100 West 1100")
+goto(-1100, 1100, goto_position_target_global_int)
+
+print("Position South 1200 West 1200")
+goto(-1200, 1200, goto_position_target_global_int)
+
+print("Position South 1300 West 1300")
+goto(-1300, 1300, goto_position_target_global_int)
+
+print("Position South 1400 West 1400")
+goto(-1400, 1400, goto_position_target_global_int)
+
+print("Position South 1500 West 1500")
+goto(-1500, 1500, goto_position_target_global_int)
+
+print("Position South 1600 West 1600")
+goto(-1600, 1600, goto_position_target_global_int)
+
+print("Position South 1700 West 1700")
+goto(-1700, 1700, goto_position_target_global_int)
+
+print("Position South 1800 West 1800")
+goto(-1800, 1800, goto_position_target_global_int)
+
+print("Position South 1900 West 1900")
+goto(-1900, 1900, goto_position_target_global_int)
+
+print("Position South 2000 West 2000")
+goto(-2000, 2000, goto_position_target_global_int)
+
+print("Position South 2100 West 2100")
+goto(-2100, 2100, goto_position_target_global_int)
+
+print("Position South 2200 West 2200")
+goto(-2200, 2200, goto_position_target_global_int)
+
+print("Position South 2300 West 2300")
+goto(-2300, 2300, goto_position_target_global_int)
+
+print("Position South 2400 West 2400")
+goto(-2400, 2400, goto_position_target_global_int)
+
+print("Position South 2500 West 2500")
+goto(-2500, 2500, goto_position_target_global_int)
+
+print("Position South 2600 West 2600")
+goto(-2600, 2600, goto_position_target_global_int)
+
+print("Position South 2700 West 2700")
+goto(-2700, 2700, goto_position_target_global_int)
+
+print("Position South 2800 West 2800")
+goto(-2800, 2800, goto_position_target_global_int)
+
+print("Position South 2900 West 2900")
+goto(-2900, 2900, goto_position_target_global_int)
+
+print("Position South 3000 West 3000")
+goto(-3000, 3000, goto_position_target_global_int)
+
+print("Position South 3100 West 3100")
+goto(-3100, 3100, goto_position_target_global_int)
+
+print("Position South 3200 West 3200")
+goto(-3200, 3200, goto_position_target_global_int)
+
+print("Position South 3300 West 3300")
+goto(-3300, 3300, goto_position_target_global_int)
+
+print("Position South 3400 West 3400")
+goto(-3400, 3400, goto_position_target_global_int)
+
+print("Position ")
 
 
 """
