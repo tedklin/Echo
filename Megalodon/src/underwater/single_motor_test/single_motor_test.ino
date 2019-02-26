@@ -1,7 +1,7 @@
 #include <Servo.h>
 
 byte servoPin = 9;
-float input
+float throttle = 0;
 Servo motor1;
 
 // set power from -1.0 to 1.0
@@ -13,6 +13,7 @@ void setThrottle(float motorThrottle) {
   Serial.print(" || Motor 1 input: ");
   Serial.print(input);
   Serial.println();
+}
 
 void setup() {
   Serial.begin(9600);
@@ -23,9 +24,9 @@ void setup() {
 }
 
 void loop() {
-//  if (Serial.read() != input) {
-//    
-//  }
-  setThrottle(0.3);
+  if (throttle < 1800) {
+    throttle++;
+  }
+  setThrottle
 }
 
