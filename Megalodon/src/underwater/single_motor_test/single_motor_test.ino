@@ -24,9 +24,6 @@ void setup() {
 }
 
 void loop() {
-  if (throttle < 1800) {
-    throttle++;
-  }
-  setThrottle
+  setThrottle(0.3);
 }
 
