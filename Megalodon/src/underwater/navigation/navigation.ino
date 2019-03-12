@@ -1,5 +1,27 @@
 #include <Servo.h>
 
+// ========================================================== //
+//                          START OF STATE ESTIMATION METHODS //
+// ========================================================== //
+
+float m_measuredYaw = 0;
+float m_measuredPitch = 0;
+float m_measuredRoll = 0;
+float m_measuredX = 0;
+float m_measuredY = 0;
+float m_measuredZ = 0;
+
+
+
+// ========================================================== //
+//                            END OF STATE ESTIMATION METHODS //
+// ========================================================== //
+
+
+// ========================================================== //
+//                                  START OF MOVEMENT METHODS //
+// ========================================================== //
+
 const float kYawP = 0;
 const float kYawI = 0;
 const float kYawD = 0;
@@ -41,39 +63,6 @@ float m_xControlOutput = 0;
 float m_yControlOutput = 0;
 float m_zControlOutput = 0;
 
-float m_measuredYaw = 0;
-float m_measuredPitch = 0;
-float m_measuredRoll = 0;
-float m_measuredX = 0;
-float m_measuredY = 0;
-float m_measuredZ = 0;
-
-void setup() {
-  Serial.begin(9600);
-
-  m_horizontalRightMotor.attach(5);
-  m_horizontalLeftMotor.attach(6);
-  m_verticalFrontRightMotor.attach(3);
-  m_verticalFrontLeftMotor.attach(9);
-  m_verticalBackRightMotor.attach(10);
-  m_verticalBackLeftMotor.attach(11);
-
-  stopAll();
-  
-  delay(7000);
-}
-
-void loop() {
-  m_horizontalRightPower = m_yawControlOutput + m_xControlOutput;
-  m_horizontalRightPower = -m_yawControlOutput + m_xControlOutput;
-  m_verticalFrontRightPower = m_rollControlOutput + m_pitchControlOutput + m_zControlOutput;
-  m_verticalFrontLeftPower = m_rollControlOutput - m_pitchControlOutput + m_zControlOutput;
-  m_verticalBackRightPower = -m_rollControlOutput + m_pitchControlOutput + m_zControlOutput;
-  m_verticalBackLeftPower = -m_rollControlOutput - m_pitchControlOutput + m_zControlOutput;  
-  
-  updateMotorInput();
-}
-
 /**
  * @param Servo motor 
  * @param float throttle (-1.0 to 1.0)
@@ -83,7 +72,7 @@ void setThrottle(Servo motor, float throttle) {
   if (input > 1.0) {
     input = 1.0;
   } else if (input < -1.0) {
-    input = -1.0
+    input = -1.0;
   }
   motor.writeMicroseconds(input);
 }
@@ -113,19 +102,19 @@ void stopAll() {
 }
 
 /**
- * Turn in place to orient in all 3 axis
+ * Rotation
  * @param kDesiredYaw
  * @param kDesiredPitch
  * @param kDesiredRoll
  */
-void rotate(float desiredYaw, float desiredRoll, desiredPitch) {
+void rotate(float desiredYaw, float desiredRoll, float desiredPitch) {
   m_yawControlOutput = kYawP * (desiredYaw - m_measuredYaw);
   m_rollControlOutput = kRollP * (desiredRoll - m_measuredRoll);
   m_pitchControlOutput = kPitchP * (desiredPitch - m_measuredPitch);
 }
 
 /**
- * Translation movement
+ * Translation
  * @param kDesiredX
  * @param kDesiredY
  * @param kDesiredZ
@@ -134,4 +123,42 @@ void translate(float desiredX, float desiredY, float desiredZ) {
   m_xControlOutput = kXP * (desiredX - m_measuredX);
   m_yControlOutput = kYP * (desiredY - m_measuredY);
   m_zControlOutput = kZP * (desiredZ - m_measuredZ);
+}
+
+// ========================================================== //
+//                                    END OF MOVEMENT METHODS //
+// ========================================================== //
+
+
+// ========================================================== //
+//                                         START OF MAIN CODE //
+// ========================================================== //
+
+void setup() {
+  Serial.begin(9600);
+
+  m_horizontalRightMotor.attach(5);
+  m_horizontalLeftMotor.attach(6);
+  m_verticalFrontRightMotor.attach(3);
+  m_verticalFrontLeftMotor.attach(9);
+  m_verticalBackRightMotor.attach(10);
+  m_verticalBackLeftMotor.attach(11);
+
+  stopAll();
+  
+  delay(7000);
+}
+
+void loop() {
+  rotate(0, 0, 0);
+  translate(0, 0, 0);
+  
+  m_horizontalRightPower = m_yawControlOutput + m_xControlOutput;
+  m_horizontalRightPower = -m_yawControlOutput + m_xControlOutput;
+  m_verticalFrontRightPower = m_rollControlOutput + m_pitchControlOutput + m_zControlOutput;
+  m_verticalFrontLeftPower = m_rollControlOutput - m_pitchControlOutput + m_zControlOutput;
+  m_verticalBackRightPower = -m_rollControlOutput + m_pitchControlOutput + m_zControlOutput;
+  m_verticalBackLeftPower = -m_rollControlOutput - m_pitchControlOutput + m_zControlOutput;  
+  
+  updateMotorInput();
 }
