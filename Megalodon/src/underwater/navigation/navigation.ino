@@ -27,19 +27,19 @@ const float kZP = 0;
 const float kZI = 0;
 const float kZD = 0;
 
-float kHorizontalRightPower = 0;
-float kHorizontalLeftPower = 0;
-float kVerticalFrontRightPower = 0;
-float kVerticalFrontLeftPower = 0;
-float kVerticalBackRightPower = 0;
-float kVerticalBackLeftPower = 0;
+float horizontalRightPower = 0;
+float horizontalLeftPower = 0;
+float verticalFrontRightPower = 0;
+float verticalFrontLeftPower = 0;
+float verticalBackRightPower = 0;
+float verticalBackLeftPower = 0;
 
-float kYawControlOutput = 0;
-float kRollControlOutput = 0;
-float kPitchControlOutput = 0;
-float kXControlOutput = 0;
-float kYControlOutput = 0;
-float kZControlOutput = 0;
+float yawControlOutput = 0;
+float rollControlOutput = 0;
+float pitchControlOutput = 0;
+float xControlOutput = 0;
+float yControlOutput = 0;
+float zControlOutput = 0;
 
 void setup() {
   Serial.begin(9600);
@@ -57,33 +57,35 @@ void setup() {
 }
 
 void loop() {
+  horizontalRightPower = yawControlOutput + xControlOutput;
+  horizontalRightPower = -yawControlOutput + xControlOutput;
+  verticalFrontRightPower = rollControlOutput + pitchControlOutput + zControlOutput;
+  verticalFrontLeftPower = rollControlOutput - pitchControlOutput + zControlOutput;
+  verticalBackRightPower = -rollControlOutput + pitchControlOutput + zControlOutput;
+  verticalBackLeftPower = -rollControlOutput - pitchControlOutput + zControlOutput;  
+  
   updateMotorInput();
 }
 
 /**
  * @param Servo motor 
- * @param float throttle
+ * @param float throttle (-1.0 to 1.0)
  */
 void setThrottle(Servo motor, float throttle) {
   float input = throttle * 400 + 1500;
   motor.writeMicroseconds(input);
-  Serial.print("Motor 1 Throttle: ");
-  Serial.print(throttle);
-  Serial.print(" || Motor 1 input: ");
-  Serial.print(input);
-  Serial.println();
 }
 
 /**
  * Actuate motors
  */
 void updateMotorInput() {
-  setThrottle(horizontalRightMotor, kHorizontalRightPower);
-  setThrottle(horizontalLeftMotor, kHorizontalLeftPower);
-  setThrottle(verticalFrontRightMotor, kVerticalFrontRightPower);
-  setThrottle(verticalFrontLeftMotor, kVerticalFrontLeftPower);
-  setThrottle(verticalBackRightMotor, kVerticalBackRightPower);
-  setThrottle(verticalBackLeftMotor, kVerticalBackLeftPower);
+  setThrottle(horizontalRightMotor, horizontalRightPower);
+  setThrottle(horizontalLeftMotor, horizontalLeftPower);
+  setThrottle(verticalFrontRightMotor, verticalFrontRightPower);
+  setThrottle(verticalFrontLeftMotor, verticalFrontLeftPower);
+  setThrottle(verticalBackRightMotor, verticalBackRightPower);
+  setThrottle(verticalBackLeftMotor, verticalBackLeftPower);
 }
 
 /**
@@ -93,9 +95,9 @@ void updateMotorInput() {
  * @param kDesiredRoll
  */
 void rotate(float desiredYaw, float desiredRoll, desiredPitch) {
-  kYawControlOutput = kYawP * (desiredYaw - measuredYaw);
-  kRollControlOutput = kRollP * (desiredRoll - measuredRoll);
-  kPitchControlOutput = kPitchP * (desiredPitch - measuredPitch);
+  yawControlOutput = kYawP * (desiredYaw - measuredYaw);
+  rollControlOutput = kRollP * (desiredRoll - measuredRoll);
+  pitchControlOutput = kPitchP * (desiredPitch - measuredPitch);
 }
 
 /**
@@ -105,7 +107,7 @@ void rotate(float desiredYaw, float desiredRoll, desiredPitch) {
  * @param kDesiredZ
  */
 void translate(float desiredX, float desiredY, float desiredZ) {
-  kXControlOutput = kXP * (desiredX - measuredX);
-  kYControlOutput = kYP * (desiredY - measuredY);
-  kZControlOutput = kZP * (desiredZ - measuredZ);
+  xControlOutput = kXP * (desiredX - measuredX);
+  yControlOutput = kYP * (desiredY - measuredY);
+  zControlOutput = kZP * (desiredZ - measuredZ);
 }
