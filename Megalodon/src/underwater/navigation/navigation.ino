@@ -82,6 +82,9 @@ void setThrottle(Servo motor, float throttle) {
   Serial.println();
 }
 
+/**
+ * Actuate motors
+ */
 void updateMotorInput() {
   setThrottle(horizontalRightMotor, kHorizontalRightPower);
   setThrottle(horizontalLeftMotor, kHorizontalLeftPower);
@@ -89,4 +92,34 @@ void updateMotorInput() {
   setThrottle(verticalFrontLeftMotor, kVerticalFrontLeftPower);
   setThrottle(verticalBackRightMotor, kVerticalBackRightPower);
   setThrottle(verticalBackLeftMotor, kVerticalBackLeftPower);
+}
+
+/**
+ * Turn in place to orient in all 3 axis
+ * @param kDesiredYaw
+ * @param kDesiredPitch
+ * @param kDesiredRoll
+ */
+void rotate(float desiredYaw, float desiredRoll, desiredPitch) {
+  kYawControlOutput = kYawP * (kDesiredYaw - measuredYaw);
+  kRollControlOutput = kRollP * (kDesiredRoll - measuredRoll);
+  kPitchControlOutput = kPitchP * (kDesiredPitch - measuredPitch);
+  kXControlOutput = 0;
+  kYControlOutput = 0;
+  kZControlOutput = 0;
+}
+
+/**
+ * Translation movement
+ * @param kDesiredX
+ * @param kDesiredY
+ * @param kDesiredZ
+ */
+void translate(float desiredX, float desiredY, float desiredZ) {
+  kYawControlOutput = 0;
+  kPitchControlOutput = 0;
+  kRollControlOutput = 0;
+  kXControlOutput = kXP * (kDesiredX - measuredX);
+  kYControlOutput = kYP * (kDesiredY - measuredY);
+  kZControlOutput = kZP * (kDesiredZ - measuredZ);
 }
