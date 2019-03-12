@@ -1,12 +1,5 @@
 #include <Servo.h>
 
-Servo m_horizontalRightMotor;
-Servo m_horizontalLeftMotor;
-Servo m_verticalFrontRightMotor;
-Servo m_verticalFrontLeftMotor;
-Servo m_verticalBackRightMotor;
-Servo m_verticalBackLeftMotor;
-
 const float kYawP = 0;
 const float kYawI = 0;
 const float kYawD = 0;
@@ -27,6 +20,13 @@ const float kZP = 0;
 const float kZI = 0;
 const float kZD = 0;
 
+Servo m_horizontalRightMotor;
+Servo m_horizontalLeftMotor;
+Servo m_verticalFrontRightMotor;
+Servo m_verticalFrontLeftMotor;
+Servo m_verticalBackRightMotor;
+Servo m_verticalBackLeftMotor;
+
 float m_horizontalRightPower = 0;
 float m_horizontalLeftPower = 0;
 float m_verticalFrontRightPower = 0;
@@ -40,6 +40,13 @@ float m_pitchControlOutput = 0;
 float m_xControlOutput = 0;
 float m_yControlOutput = 0;
 float m_zControlOutput = 0;
+
+float m_measuredYaw = 0;
+float m_measuredPitch = 0;
+float m_measuredRoll = 0;
+float m_measuredX = 0;
+float m_measuredY = 0;
+float m_measuredZ = 0;
 
 void setup() {
   Serial.begin(9600);
@@ -112,9 +119,9 @@ void stopAll() {
  * @param kDesiredRoll
  */
 void rotate(float desiredYaw, float desiredRoll, desiredPitch) {
-  m_yawControlOutput = kYawP * (desiredYaw - measuredYaw);
-  m_rollControlOutput = kRollP * (desiredRoll - measuredRoll);
-  m_pitchControlOutput = kPitchP * (desiredPitch - measuredPitch);
+  m_yawControlOutput = kYawP * (desiredYaw - m_measuredYaw);
+  m_rollControlOutput = kRollP * (desiredRoll - m_measuredRoll);
+  m_pitchControlOutput = kPitchP * (desiredPitch - m_measuredPitch);
 }
 
 /**
@@ -124,7 +131,7 @@ void rotate(float desiredYaw, float desiredRoll, desiredPitch) {
  * @param kDesiredZ
  */
 void translate(float desiredX, float desiredY, float desiredZ) {
-  m_xControlOutput = kXP * (desiredX - measuredX);
-  m_yControlOutput = kYP * (desiredY - measuredY);
-  m_zControlOutput = kZP * (desiredZ - measuredZ);
+  m_xControlOutput = kXP * (desiredX - m_measuredX);
+  m_yControlOutput = kYP * (desiredY - m_measuredY);
+  m_zControlOutput = kZP * (desiredZ - m_measuredZ);
 }
