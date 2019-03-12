@@ -27,13 +27,6 @@ const float kZP = 0;
 const float kZI = 0;
 const float kZD = 0;
 
-float kDesiredYaw = 0;
-float kDesiredPitch = 0;
-float kDesiredRoll = 0;
-float kDesiredX = 0;
-float kDesiredY = 0;
-float kDesiredZ = 0;
-
 float kHorizontalRightPower = 0;
 float kHorizontalLeftPower = 0;
 float kVerticalFrontRightPower = 0;
@@ -64,7 +57,6 @@ void setup() {
 }
 
 void loop() {
-
   updateMotorInput();
 }
 
@@ -101,12 +93,9 @@ void updateMotorInput() {
  * @param kDesiredRoll
  */
 void rotate(float desiredYaw, float desiredRoll, desiredPitch) {
-  kYawControlOutput = kYawP * (kDesiredYaw - measuredYaw);
-  kRollControlOutput = kRollP * (kDesiredRoll - measuredRoll);
-  kPitchControlOutput = kPitchP * (kDesiredPitch - measuredPitch);
-  kXControlOutput = 0;
-  kYControlOutput = 0;
-  kZControlOutput = 0;
+  kYawControlOutput = kYawP * (desiredYaw - measuredYaw);
+  kRollControlOutput = kRollP * (desiredRoll - measuredRoll);
+  kPitchControlOutput = kPitchP * (desiredPitch - measuredPitch);
 }
 
 /**
@@ -116,10 +105,7 @@ void rotate(float desiredYaw, float desiredRoll, desiredPitch) {
  * @param kDesiredZ
  */
 void translate(float desiredX, float desiredY, float desiredZ) {
-  kYawControlOutput = 0;
-  kPitchControlOutput = 0;
-  kRollControlOutput = 0;
-  kXControlOutput = kXP * (kDesiredX - measuredX);
-  kYControlOutput = kYP * (kDesiredY - measuredY);
-  kZControlOutput = kZP * (kDesiredZ - measuredZ);
+  kXControlOutput = kXP * (desiredX - measuredX);
+  kYControlOutput = kYP * (desiredY - measuredY);
+  kZControlOutput = kZP * (desiredZ - measuredZ);
 }
