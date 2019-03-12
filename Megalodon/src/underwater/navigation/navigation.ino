@@ -1,8 +1,47 @@
 #include <Servo.h>
+#include <Wire.h>
+#include <Adafruit_Sensor.h>
+#include <Adafruit_BNO055.h>
+#include <utility/imumaths.h>
 
-// ========================================================== //
-//                          START OF STATE ESTIMATION METHODS //
-// ========================================================== //
+// ======================================================================================= //
+//                                                         START OF HARDWARE INSTANTIATION //
+// ======================================================================================= //
+
+Servo m_horizontalRightMotor;
+Servo m_horizontalLeftMotor;
+Servo m_verticalFrontRightMotor;
+Servo m_verticalFrontLeftMotor;
+Servo m_verticalBackRightMotor;
+Servo m_verticalBackLeftMotor;
+
+Adafruit_BNO055 m_imu;
+
+void instantiateMotors() {
+  m_horizontalRightMotor.attach(5);
+  m_horizontalLeftMotor.attach(6);
+  m_verticalFrontRightMotor.attach(3);
+  m_verticalFrontLeftMotor.attach(9);
+  m_verticalBackRightMotor.attach(10);
+  m_verticalBackLeftMotor.attach(11);
+}
+
+void instantiateIMU() {
+  m_imu = Adafruit_BNO055();
+  if(!m_imu.begin())
+  {
+    Serial.print("Ooops, no BNO055 detected ... Check your wiring or I2C ADDR!");
+    while(1);
+  }
+}
+
+// ======================================================================================= //
+//                                                           END OF HARDWARE INSTANTIATION //
+// ======================================================================================= //
+//                                                                                         //
+// ======================================================================================= //
+//                                                       START OF STATE ESTIMATION METHODS //
+// ======================================================================================= //
 
 float m_measuredYaw = 0;
 float m_measuredPitch = 0;
@@ -13,14 +52,13 @@ float m_measuredZ = 0;
 
 
 
-// ========================================================== //
-//                            END OF STATE ESTIMATION METHODS //
-// ========================================================== //
-
-
-// ========================================================== //
-//                                  START OF MOVEMENT METHODS //
-// ========================================================== //
+// ======================================================================================= //
+//                                                         END OF STATE ESTIMATION METHODS //
+// ======================================================================================= //
+//                                                                                         //
+// ======================================================================================= //
+//                                                               START OF MOVEMENT METHODS //
+// ======================================================================================= //
 
 const float kYawP = 0;
 const float kYawI = 0;
@@ -41,13 +79,6 @@ const float kYD = 0;
 const float kZP = 0;
 const float kZI = 0;
 const float kZD = 0;
-
-Servo m_horizontalRightMotor;
-Servo m_horizontalLeftMotor;
-Servo m_verticalFrontRightMotor;
-Servo m_verticalFrontLeftMotor;
-Servo m_verticalBackRightMotor;
-Servo m_verticalBackLeftMotor;
 
 float m_horizontalRightPower = 0;
 float m_horizontalLeftPower = 0;
@@ -125,28 +156,23 @@ void translate(float desiredX, float desiredY, float desiredZ) {
   m_zControlOutput = kZP * (desiredZ - m_measuredZ);
 }
 
-// ========================================================== //
-//                                    END OF MOVEMENT METHODS //
-// ========================================================== //
-
-
-// ========================================================== //
-//                                         START OF MAIN CODE //
-// ========================================================== //
+// ======================================================================================= //
+//                                                                 END OF MOVEMENT METHODS //
+// ======================================================================================= //
+//                                                                                         //
+// ======================================================================================= //
+//                                                                      START OF MAIN CODE //
+// ======================================================================================= //
 
 void setup() {
   Serial.begin(9600);
-
-  m_horizontalRightMotor.attach(5);
-  m_horizontalLeftMotor.attach(6);
-  m_verticalFrontRightMotor.attach(3);
-  m_verticalFrontLeftMotor.attach(9);
-  m_verticalBackRightMotor.attach(10);
-  m_verticalBackLeftMotor.attach(11);
-
-  stopAll();
   
+  instantiateMotors();
+  stopAll();
   delay(7000);
+  Serial.println("MOTORS INSTANTIATED");
+
+  
 }
 
 void loop() {
