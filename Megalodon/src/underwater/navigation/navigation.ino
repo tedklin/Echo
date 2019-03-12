@@ -94,6 +94,18 @@ void updateMotorInput() {
 }
 
 /**
+ * Stop motors
+ */
+void stopAll() {
+  setThrottle(horizontalRightMotor, 0.0);
+  setThrottle(horizontalLeftMotor, 0.0);
+  setThrottle(verticalFrontRightMotor, 0.0);
+  setThrottle(verticalFrontLeftMotor, 0.0);
+  setThrottle(verticalBackRightMotor, 0.0);
+  setThrottle(verticalBackLeftMotor, 0.0);
+}
+
+/**
  * Turn in place to orient in all 3 axis
  * @param kDesiredYaw
  * @param kDesiredPitch
