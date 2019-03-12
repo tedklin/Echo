@@ -81,3 +81,12 @@ void setThrottle(Servo motor, float throttle) {
   Serial.print(input);
   Serial.println();
 }
+
+void updateMotorInput() {
+  setThrottle(horizontalRightMotor, kHorizontalRightPower);
+  setThrottle(horizontalLeftMotor, kHorizontalLeftPower);
+  setThrottle(verticalFrontRightMotor, kVerticalFrontRightPower);
+  setThrottle(verticalFrontLeftMotor, kVerticalFrontLeftPower);
+  setThrottle(verticalBackRightMotor, kVerticalBackRightPower);
+  setThrottle(verticalBackLeftMotor, kVerticalBackLeftPower);
+}
