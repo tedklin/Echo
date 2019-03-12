@@ -73,6 +73,11 @@ void loop() {
  */
 void setThrottle(Servo motor, float throttle) {
   float input = throttle * 400 + 1500;
+  if (input > 1.0) {
+    input = 1.0;
+  } else if (input < -1.0) {
+    input = -1.0
+  }
   motor.writeMicroseconds(input);
 }
 
