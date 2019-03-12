@@ -8,6 +8,8 @@
 //                                                                      START OF CONSTANTS // 
 // ======================================================================================= //
 
+#define kLoopTimeDelayMs (100);
+
 const float kYawP = 0;
 const float kYawI = 0;
 const float kYawD = 0;
@@ -77,6 +79,32 @@ float m_measuredRoll = 0;
 float m_measuredX = 0;
 float m_measuredY = 0;
 float m_measuredZ = 0;
+
+void updateIMU() {
+  imu::Vector<3> euler = bno.getVector(Adafruit_BNO055::VECTOR_EULER);
+  m_measuredYaw = euler.x();
+  m_measuredRoll = euler.y();
+  m_measuredPitch = euler.z();
+
+  imu::Vector<3> linearAccel = bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
+  m_measuredX = linearAccel.x();
+  m_measuredY = linearAccel.y();
+  m_measuredZ = linearAccel.z();
+}
+
+void displaySensorStatus() {
+  Serial.println("Calibration status values: 0=uncalibrated, 3=fully calibrated");
+  uint8_t system, gyro, accel, mag = 0;
+  bno.getCalibration(&system, &gyro, &accel, &mag);
+  Serial.print("CALIBRATION: Sys=");
+  Serial.print(system, DEC);
+  Serial.print(" Gyro=");
+  Serial.print(gyro, DEC);
+  Serial.print(" Accel=");
+  Serial.print(accel, DEC);
+  Serial.print(" Mag=");
+  Serial.println(mag, DEC);
+}
 
 // ======================================================================================= //
 //                                                         END OF STATE ESTIMATION METHODS //
@@ -197,6 +225,9 @@ void loop() {
   m_verticalBackLeftPower = -m_rollControlOutput - m_pitchControlOutput + m_zControlOutput;  
   
   updateMotorInput();
+  updateIMU();
+
+  delay(kLoopTimeDelayMs);
 }
 
 // ======================================================================================= //
