@@ -5,6 +5,34 @@
 #include <utility/imumaths.h>
 
 // ======================================================================================= //
+//                                                                      START OF CONSTANTS // 
+// ======================================================================================= //
+
+const float kYawP = 0;
+const float kYawI = 0;
+const float kYawD = 0;
+const float kPitchP = 0;
+const float kPitchI = 0;
+const float kPitchD = 0;
+const float kRollP = 0;
+const float kRollI = 0;
+const float kRollD = 0;
+
+const float kXP = 0;
+const float kXI = 0;
+const float kXD = 0;
+const float kYP = 0;
+const float kYI = 0;
+const float kYD = 0;
+const float kZP = 0;
+const float kZI = 0;
+const float kZD = 0;
+
+// ======================================================================================= //
+//                                                                        END OF CONSTANTS //
+// ======================================================================================= //
+//                                                                                         //
+// ======================================================================================= //
 //                                                         START OF HARDWARE INSTANTIATION //
 // ======================================================================================= //
 
@@ -50,8 +78,6 @@ float m_measuredX = 0;
 float m_measuredY = 0;
 float m_measuredZ = 0;
 
-
-
 // ======================================================================================= //
 //                                                         END OF STATE ESTIMATION METHODS //
 // ======================================================================================= //
@@ -59,26 +85,6 @@ float m_measuredZ = 0;
 // ======================================================================================= //
 //                                                               START OF MOVEMENT METHODS //
 // ======================================================================================= //
-
-const float kYawP = 0;
-const float kYawI = 0;
-const float kYawD = 0;
-const float kPitchP = 0;
-const float kPitchI = 0;
-const float kPitchD = 0;
-const float kRollP = 0;
-const float kRollI = 0;
-const float kRollD = 0;
-
-const float kXP = 0;
-const float kXI = 0;
-const float kXD = 0;
-const float kYP = 0;
-const float kYI = 0;
-const float kYD = 0;
-const float kZP = 0;
-const float kZI = 0;
-const float kZD = 0;
 
 float m_horizontalRightPower = 0;
 float m_horizontalLeftPower = 0;
@@ -166,13 +172,17 @@ void translate(float desiredX, float desiredY, float desiredZ) {
 
 void setup() {
   Serial.begin(9600);
-  
+
+  Serial.println("MOTORS INSTANTIATING");
   instantiateMotors();
   stopAll();
-  delay(7000);
+  delay(5000);
   Serial.println("MOTORS INSTANTIATED");
 
-  
+  Serial.println("IMU INSTANTIATING");
+  instantiateIMU();
+  delay(5000);
+  Serial.println("IMU INSTANTIATED");
 }
 
 void loop() {
@@ -188,3 +198,7 @@ void loop() {
   
   updateMotorInput();
 }
+
+// ======================================================================================= //
+//                                                                       #blueteambestteam //
+// ======================================================================================= //
