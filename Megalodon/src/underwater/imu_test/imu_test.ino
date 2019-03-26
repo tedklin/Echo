@@ -90,7 +90,6 @@ void loop(void)
   Serial.print(linearAccel.z());
   Serial.print("\t\t");
 
-  /*
   // Quaternion data
   imu::Quaternion quat = bno.getQuat();
   Serial.print("qW: ");
@@ -102,7 +101,6 @@ void loop(void)
   Serial.print(" qZ: ");
   Serial.print(quat.z(), 4);
   Serial.print("\t\t");
-  */
 
   /* Display calibration status for each sensor. */
   uint8_t system, gyro, accel, mag = 0;

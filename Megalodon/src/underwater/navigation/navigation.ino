@@ -127,6 +127,7 @@ float m_pitchControlOutput = 0;
 float m_xControlOutput = 0;
 float m_yControlOutput = 0;
 float m_zControlOutput = 0;
+float m_translationOutput = 0;
 
 /**
  * @param Servo motor 
@@ -179,14 +180,10 @@ void rotate(float desiredYaw, float desiredRoll, float desiredPitch) {
 }
 
 /**
- * Translation
- * @param kDesiredX
- * @param kDesiredY
- * @param kDesiredZ
+ * Translation (depth control)
+ * @param desiredZ
  */
-void translate(float desiredX, float desiredY, float desiredZ) {
-  m_xControlOutput = kXP * (desiredX - m_measuredX);
-  m_yControlOutput = kYP * (desiredY - m_measuredY);
+void translate(float desiredZ) {
   m_zControlOutput = kZP * (desiredZ - m_measuredZ);
 }
 
@@ -215,10 +212,10 @@ void setup() {
 
 void loop() {
   rotate(0, 0, 0);
-  translate(0, 0, 0);
+  translationOutput = 0;
   
-  m_horizontalRightPower = m_yawControlOutput + m_xControlOutput;
-  m_horizontalRightPower = -m_yawControlOutput + m_xControlOutput;
+  m_horizontalRightPower = m_yawControlOutput + translationOutput;
+  m_horizontalRightPower = -m_yawControlOutput + translationOutput;
   m_verticalFrontRightPower = m_rollControlOutput + m_pitchControlOutput + m_zControlOutput;
   m_verticalFrontLeftPower = m_rollControlOutput - m_pitchControlOutput + m_zControlOutput;
   m_verticalBackRightPower = -m_rollControlOutput + m_pitchControlOutput + m_zControlOutput;
