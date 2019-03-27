@@ -8,7 +8,7 @@
 //                                                                      START OF CONSTANTS // 
 // ======================================================================================= //
 
-#define kLoopTimeDelayMs (100);
+#define LOOP_TIME_DELAY_MS (100)
 
 const float kYawP = 0;
 const float kYawI = 0;
@@ -19,16 +19,18 @@ const float kPitchD = 0;
 const float kRollP = 0;
 const float kRollI = 0;
 const float kRollD = 0;
+const float kDepthP = 0;
+const float kDepthI = 0;
+const float kDepthD = 0;
 
-const float kXP = 0;
-const float kXI = 0;
-const float kXD = 0;
-const float kYP = 0;
-const float kYI = 0;
-const float kYD = 0;
-const float kZP = 0;
-const float kZI = 0;
-const float kZD = 0;
+const float kTranslationP = 0;
+const float kTranslationI = 0;
+const float kTranslationD = 0;
+
+const float kYawThreshold = 5;
+const float kPitchThreshold = 5;
+const float kRollThreshold = 5;
+const float kDepthThreshold = 5;
 
 // ======================================================================================= //
 //                                                                        END OF CONSTANTS //
@@ -79,14 +81,15 @@ float m_measuredRoll = 0;
 float m_measuredX = 0;
 float m_measuredY = 0;
 float m_measuredZ = 0;
+float m_measuredDepth = 0;
 
 void updateIMU() {
-  imu::Vector<3> euler = bno.getVector(Adafruit_BNO055::VECTOR_EULER);
+  imu::Vector<3> euler = m_imu.getVector(Adafruit_BNO055::VECTOR_EULER);
   m_measuredYaw = euler.x();
   m_measuredRoll = euler.y();
   m_measuredPitch = euler.z();
 
-  imu::Vector<3> linearAccel = bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
+  imu::Vector<3> linearAccel = m_imu.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
   m_measuredX = linearAccel.x();
   m_measuredY = linearAccel.y();
   m_measuredZ = linearAccel.z();
@@ -95,7 +98,7 @@ void updateIMU() {
 void displaySensorStatus() {
   Serial.println("Calibration status values: 0=uncalibrated, 3=fully calibrated");
   uint8_t system, gyro, accel, mag = 0;
-  bno.getCalibration(&system, &gyro, &accel, &mag);
+  m_imu.getCalibration(&system, &gyro, &accel, &mag);
   Serial.print("CALIBRATION: Sys=");
   Serial.print(system, DEC);
   Serial.print(" Gyro=");
@@ -124,9 +127,7 @@ float m_verticalBackLeftPower = 0;
 float m_yawControlOutput = 0;
 float m_rollControlOutput = 0;
 float m_pitchControlOutput = 0;
-float m_xControlOutput = 0;
-float m_yControlOutput = 0;
-float m_zControlOutput = 0;
+float m_depthControlOutput = 0;
 float m_translationOutput = 0;
 
 /**
@@ -168,23 +169,50 @@ void stopAll() {
 }
 
 /**
- * Rotation
- * @param kDesiredYaw
- * @param kDesiredPitch
- * @param kDesiredRoll
+ * Update control loop output
+ * @param desiredYaw
+ * @param desiredRoll
+ * @param desiredPitch
  */
 void rotate(float desiredYaw, float desiredRoll, float desiredPitch) {
-  m_yawControlOutput = kYawP * (desiredYaw - m_measuredYaw);
-  m_rollControlOutput = kRollP * (desiredRoll - m_measuredRoll);
   m_pitchControlOutput = kPitchP * (desiredPitch - m_measuredPitch);
+  m_rollControlOutput = kRollP * (desiredRoll - m_measuredRoll);
+  m_yawControlOutput = kYawP * (desiredYaw - m_measuredYaw);
+  if (!isPitchAligned(desiredPitch)) {
+    m_rollControlOutput = 0;
+    m_yawControlOutput = 0;
+  } else if (!isRollAligned(desiredRoll)) {
+    m_yawControlOutput = 0;
+  }
 }
 
 /**
- * Translation (depth control)
- * @param desiredZ
+ * Go to depth
+ * @param desiredDepth
  */
-void translate(float desiredZ) {
-  m_zControlOutput = kZP * (desiredZ - m_measuredZ);
+void goToDepth(float desiredDepth) {
+  rotate(m_measuredYaw, 0, 0);
+  if (isPitchAligned(0) && isRollAligned(0)) {
+    m_depthControlOutput = kDepthP * (m_desiredDepth - m_measuredDepth);
+  } else {
+    m_depthControlOutput = 0;
+  }
+}
+
+bool isYawAligned(float desiredYaw) {
+  return abs(m_measuredYaw - desiredYaw) < kYawThreshold;
+}
+
+bool isPitchAligned(float desiredPitch) {
+  return abs(m_measuredPitch - desiredPitch) < kPitchThreshold;
+}
+
+bool isRollAligned(float desiredRoll) {
+  return abs(m_measuredRoll - desiredRoll) < kRollThreshold;
+}
+
+bool isDepthAligned(float desiredDepth) {
+  return abs(m_measuredDepth - desiredDepth) < kDepthThreshold;
 }
 
 // ======================================================================================= //
@@ -211,20 +239,26 @@ void setup() {
 }
 
 void loop() {
-  rotate(0, 0, 0);
-  translationOutput = 0;
+  updateIMU();
   
-  m_horizontalRightPower = m_yawControlOutput + translationOutput;
-  m_horizontalRightPower = -m_yawControlOutput + translationOutput;
-  m_verticalFrontRightPower = m_rollControlOutput + m_pitchControlOutput + m_zControlOutput;
-  m_verticalFrontLeftPower = m_rollControlOutput - m_pitchControlOutput + m_zControlOutput;
-  m_verticalBackRightPower = -m_rollControlOutput + m_pitchControlOutput + m_zControlOutput;
-  m_verticalBackLeftPower = -m_rollControlOutput - m_pitchControlOutput + m_zControlOutput;  
+  m_desiredYaw = 0;
+  m_desiredPitch = 0;
+  m_desiredRoll = 0;
+  m_desiredDepth = 0;
+
+  updateControl();
+  m_translationOutput = 0;
+  
+  m_horizontalRightPower = m_yawControlOutput + m_translationOutput;
+  m_horizontalRightPower = -m_yawControlOutput + m_translationOutput;
+  m_verticalFrontRightPower = m_rollControlOutput + m_pitchControlOutput + m_depthControlOutput;
+  m_verticalFrontLeftPower = m_rollControlOutput - m_pitchControlOutput + m_depthControlOutput;
+  m_verticalBackRightPower = -m_rollControlOutput + m_pitchControlOutput + m_depthControlOutput;
+  m_verticalBackLeftPower = -m_rollControlOutput - m_pitchControlOutput + m_depthControlOutput;  
   
   updateMotorInput();
-  updateIMU();
 
-  delay(kLoopTimeDelayMs);
+  delay(LOOP_TIME_DELAY_MS);
 }
 
 // ======================================================================================= //
