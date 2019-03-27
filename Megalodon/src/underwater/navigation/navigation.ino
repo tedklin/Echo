@@ -2,6 +2,7 @@
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BNO055.h>
+#include <MS5837.h>
 #include <utility/imumaths.h>
 
 // ======================================================================================= //
@@ -48,6 +49,7 @@ Servo m_verticalBackRightMotor;
 Servo m_verticalBackLeftMotor;
 
 Adafruit_BNO055 m_imu;
+MS5837 m_barometer;
 
 void instantiateMotors() {
   m_horizontalRightMotor.attach(5);
@@ -60,11 +62,21 @@ void instantiateMotors() {
 
 void instantiateIMU() {
   m_imu = Adafruit_BNO055();
-  if(!m_imu.begin())
+  while(!m_imu.begin())
   {
-    Serial.print("Ooops, no BNO055 detected ... Check your wiring or I2C ADDR!");
-    while(1);
+    Serial.println("IMU INIT FAILED");
+    delay(5000);
   }
+}
+
+void instantiateBarometer() {
+  Wire.begin();
+  while (!m_barometer.init()) {
+    Serial.println("BAROMETER INIT FAILED!");
+    delay(5000);
+  }
+  m_barometer.setModel(MS5837::MS5837_30BA);
+  m_barometer.setFluidDensity(997); // kg/m^3 (freshwater, 1029 for seawater)
 }
 
 // ======================================================================================= //
@@ -81,7 +93,10 @@ float m_measuredRoll = 0;
 float m_measuredX = 0;
 float m_measuredY = 0;
 float m_measuredZ = 0;
+
 float m_measuredDepth = 0;
+float m_measuredAltitude = 0;
+float m_measuredPressure = 0;
 
 void updateIMU() {
   imu::Vector<3> euler = m_imu.getVector(Adafruit_BNO055::VECTOR_EULER);
@@ -93,6 +108,13 @@ void updateIMU() {
   m_measuredX = linearAccel.x();
   m_measuredY = linearAccel.y();
   m_measuredZ = linearAccel.z();
+}
+
+void updateBarometer() {
+  m_barometer.read();
+  m_measuredDepth = m_barometer.depth();
+  m_measuredAltitude = m_barometer.altitude();
+  m_measuredPressure = m_barometer.pressure();
 }
 
 void displaySensorStatus() {
@@ -108,8 +130,6 @@ void displaySensorStatus() {
   Serial.print(" Mag=");
   Serial.println(mag, DEC);
 }
-
-
 
 // ======================================================================================= //
 //                                                         END OF STATE ESTIMATION METHODS //
@@ -213,7 +233,7 @@ bool isRollAligned(float desiredRoll) {
   return abs(m_measuredRoll - desiredRoll) < kRollThreshold;
 }
 
-bool isDepthAligned(float desiredDepth) {
+bool isDepthReached(float desiredDepth) {
   return abs(m_measuredDepth - desiredDepth) < kDepthThreshold;
 }
 
@@ -238,11 +258,17 @@ void setup() {
   instantiateIMU();
   delay(5000);
   Serial.println("IMU INSTANTIATED");
+
+  Serial.println("BAROMETER INSTANTIATING");
+  instantiateBarometer();
+  delay(5000);
+  Serial.println("BAROMETER INSTANTIATED");
 }
 
 void loop() {
   updateIMU();
-  m_translationOutput = 0;
+  updateBarometer();
+
   
   m_horizontalRightPower = m_yawControlOutput + m_translationOutput;
   m_horizontalRightPower = -m_yawControlOutput + m_translationOutput;
