@@ -109,6 +109,8 @@ void displaySensorStatus() {
   Serial.println(mag, DEC);
 }
 
+
+
 // ======================================================================================= //
 //                                                         END OF STATE ESTIMATION METHODS //
 // ======================================================================================= //
@@ -193,7 +195,7 @@ void rotate(float desiredYaw, float desiredRoll, float desiredPitch) {
 void goToDepth(float desiredDepth) {
   rotate(m_measuredYaw, 0, 0);
   if (isPitchAligned(0) && isRollAligned(0)) {
-    m_depthControlOutput = kDepthP * (m_desiredDepth - m_measuredDepth);
+    m_depthControlOutput = kDepthP * (desiredDepth - m_measuredDepth);
   } else {
     m_depthControlOutput = 0;
   }
@@ -240,13 +242,6 @@ void setup() {
 
 void loop() {
   updateIMU();
-  
-  m_desiredYaw = 0;
-  m_desiredPitch = 0;
-  m_desiredRoll = 0;
-  m_desiredDepth = 0;
-
-  updateControl();
   m_translationOutput = 0;
   
   m_horizontalRightPower = m_yawControlOutput + m_translationOutput;
