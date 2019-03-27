@@ -642,6 +642,13 @@ def main():
                                              ('InitError', e0),
                                              ('FinalError', e1)]),
                     indent=2))
+
+                yaw = math.degrees(math.atan2(pose[0][1], pose[0][0]))
+                roll = math.degrees(math.atan2(-pose[2][0], math.sqrt(math.pow(pose[2][1], 2) + math.pow(pose[2][2], 2))))
+                pitch = math.degrees(math.atan2(pose[2][1], pose[2][2]))
+                print("Yaw: " + str(yaw))
+                print("Roll: " + str(roll))
+                print("Pitch: " + str(pitch))
                 
             print()
 
