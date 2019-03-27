@@ -269,6 +269,19 @@ void loop() {
   updateIMU();
   updateBarometer();
 
+  float desiredYaw = 0;
+  float desiredRoll = 0;
+  float desiredPitch = 0;
+  float desiredDepth = 0;
+  m_translationOutput = 1;
+  
+  if (isDepthReached(desiredDepth)) {
+    goToDepth(desiredDepth);
+    m_translationOutput = 0;
+  } else if (!isYawAligned(desiredYaw) && !isRollAligned(desiredRoll) && !isPitchAligned(desiredPitch)) {
+    rotate(desiredYaw, desiredRoll, desiredPitch);
+    m_translationOutput = 0;
+  }
   
   m_horizontalRightPower = m_yawControlOutput + m_translationOutput;
   m_horizontalRightPower = -m_yawControlOutput + m_translationOutput;
