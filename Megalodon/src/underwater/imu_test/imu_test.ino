@@ -18,9 +18,16 @@
 */
 
 /* Set the delay between fresh samples */
-#define BNO055_SAMPLERATE_DELAY_MS (100)
+#define BNO055_SAMPLERATE_DELAY_MS (33)
 
 Adafruit_BNO055 bno = Adafruit_BNO055();
+
+float x;
+float y;
+float z;
+
+float currentMillis;
+float previousMillis;
 
 /**************************************************************************/
 /*
@@ -52,6 +59,12 @@ void setup(void)
   bno.setExtCrystalUse(true);
 
   Serial.println("Calibration status values: 0=uncalibrated, 3=fully calibrated");
+
+  x = 0;
+  y = 0;
+  z = 0;
+
+  previousMillis = millis() / 1000.0;
 }
 
 /**************************************************************************/
@@ -62,6 +75,8 @@ void setup(void)
 /**************************************************************************/
 void loop(void)
 {
+  currentMillis = millis() / 1000.0;
+  
   // Possible vector values can be:
   // - VECTOR_ACCELEROMETER - m/s^2
   // - VECTOR_MAGNETOMETER  - uT
@@ -71,48 +86,73 @@ void loop(void)
   // - VECTOR_GRAVITY       - m/s^2
   imu::Vector<3> euler = bno.getVector(Adafruit_BNO055::VECTOR_EULER);
 
-  /* Display the floating point data */
-  Serial.print("Roll: ");
-  Serial.print(euler.x());
-  Serial.print(" Pitch: ");
-  Serial.print(euler.y());
-  Serial.print(" Yaw: ");
-  Serial.print(euler.z());
-  Serial.print("\t\t");
+//  /* Display the floating point data */
+//  Serial.print("Roll: ");
+//  Serial.print(euler.x());
+//  Serial.print(" Pitch: ");
+//  Serial.print(euler.y());
+//  Serial.print(" Yaw: ");
+//  Serial.print(euler.z());
+//  Serial.print("\t\t");
 
   imu::Vector<3> linearAccel = bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
-    /* Display the floating point data */
+  float linearAccelX = linearAccel.x();
+  float linearAccelY = linearAccel.y();
+  float linearAccelZ = linearAccel.z();
+  float timeDifference = currentMillis - previousMillis;
+  Serial.println(timeDifference);
+
+  if (linearAccelX < 0) {
+    x += -linearAccelX * linearAccelX * timeDifference * timeDifference;
+  } else {
+    x += linearAccelX * linearAccelX * timeDifference * timeDifference;
+  }
+  if (linearAccelY < 0) {
+    y += -linearAccelY * linearAccelY * timeDifference * timeDifference;
+  } else {
+    y += linearAccelY * linearAccelY * timeDifference * timeDifference;
+  }
+  if (linearAccelZ < 0) {
+    z += -linearAccelZ * linearAccelZ * timeDifference * timeDifference;
+  } else {
+    z += linearAccelZ * linearAccelZ * timeDifference * timeDifference;
+  }
+  
+  /* Display the floating point data */
   Serial.print("X: ");
-  Serial.print(linearAccel.x());
+  Serial.print(x * 100);
   Serial.print(" Y: ");
-  Serial.print(linearAccel.y());
+  Serial.print(y * 100);
   Serial.print(" Z: ");
-  Serial.print(linearAccel.z());
-  Serial.print("\t\t");
+  Serial.print(z * 100);
+//  Serial.print("\t\t");
+  Serial.println();
 
-  // Quaternion data
-  imu::Quaternion quat = bno.getQuat();
-  Serial.print("qW: ");
-  Serial.print(quat.w(), 4);
-  Serial.print(" qX: ");
-  Serial.print(quat.y(), 4);
-  Serial.print(" qY: ");
-  Serial.print(quat.x(), 4);
-  Serial.print(" qZ: ");
-  Serial.print(quat.z(), 4);
-  Serial.print("\t\t");
-
-  /* Display calibration status for each sensor. */
-  uint8_t system, gyro, accel, mag = 0;
-  bno.getCalibration(&system, &gyro, &accel, &mag);
-  Serial.print("CALIBRATION: Sys=");
-  Serial.print(system, DEC);
-  Serial.print(" Gyro=");
-  Serial.print(gyro, DEC);
-  Serial.print(" Accel=");
-  Serial.print(accel, DEC);
-  Serial.print(" Mag=");
-  Serial.println(mag, DEC);
+//  // Quaternion data
+//  imu::Quaternion quat = bno.getQuat();
+//  Serial.print("qW: ");
+//  Serial.print(quat.w(), 4);
+//  Serial.print(" qX: ");
+//  Serial.print(quat.y(), 4);
+//  Serial.print(" qY: ");
+//  Serial.print(quat.x(), 4);
+//  Serial.print(" qZ: ");
+//  Serial.print(quat.z(), 4);
+//  Serial.print("\t\t");
+//
+//  /* Display calibration status for each sensor. */
+//  uint8_t system, gyro, accel, mag = 0;
+//  bno.getCalibration(&system, &gyro, &accel, &mag);
+//  Serial.print("CALIBRATION: Sys=");
+//  Serial.print(system, DEC);
+//  Serial.print(" Gyro=");
+//  Serial.print(gyro, DEC);
+//  Serial.print(" Accel=");
+//  Serial.print(accel, DEC);
+//  Serial.print(" Mag=");
+//  Serial.println(mag, DEC);
 
   delay(BNO055_SAMPLERATE_DELAY_MS);
+
+  previousMillis = currentMillis;
 }
