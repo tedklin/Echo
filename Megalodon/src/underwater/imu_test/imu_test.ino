@@ -18,7 +18,7 @@
 */
 
 /* Set the delay between fresh samples */
-#define BNO055_SAMPLERATE_DELAY_MS (33)
+#define BNO055_SAMPLERATE_DELAY_MS (20)
 
 Adafruit_BNO055 bno = Adafruit_BNO055();
 
@@ -75,8 +75,6 @@ void setup(void)
 /**************************************************************************/
 void loop(void)
 {
-  currentMillis = millis() / 1000.0;
-  
   // Possible vector values can be:
   // - VECTOR_ACCELEROMETER - m/s^2
   // - VECTOR_MAGNETOMETER  - uT
@@ -99,24 +97,38 @@ void loop(void)
   float linearAccelX = linearAccel.x();
   float linearAccelY = linearAccel.y();
   float linearAccelZ = linearAccel.z();
+
+  currentMillis = millis() / 1000.0;
   float timeDifference = currentMillis - previousMillis;
+  previousMillis = currentMillis;
   Serial.println(timeDifference);
 
-  if (linearAccelX < 0) {
-    x += -linearAccelX * linearAccelX * timeDifference * timeDifference;
-  } else {
-    x += linearAccelX * linearAccelX * timeDifference * timeDifference;
-  }
-  if (linearAccelY < 0) {
-    y += -linearAccelY * linearAccelY * timeDifference * timeDifference;
-  } else {
-    y += linearAccelY * linearAccelY * timeDifference * timeDifference;
-  }
-  if (linearAccelZ < 0) {
-    z += -linearAccelZ * linearAccelZ * timeDifference * timeDifference;
-  } else {
-    z += linearAccelZ * linearAccelZ * timeDifference * timeDifference;
-  }
+//  if (linearAccelX < 0) {
+//    x += -linearAccelX * linearAccelX * timeDifference * timeDifference;
+//  } else {
+//    x += linearAccelX * linearAccelX * timeDifference * timeDifference;
+//  }
+//  if (linearAccelY < 0) {
+//    y += -linearAccelY * linearAccelY * timeDifference * timeDifference;
+//  } else {
+//    y += linearAccelY * linearAccelY * timeDifference * timeDifference;
+//  }
+//  if (linearAccelZ < 0) {
+//    z += -linearAccelZ * linearAccelZ * timeDifference * timeDifference;
+//  } else {
+//    z += linearAccelZ * linearAccelZ * timeDifference * timeDifference;
+//  }
+  
+  x += 0.5 * linearAccelX * timeDifference * timeDifference;
+  y += 0.5 * linearAccelY * timeDifference * timeDifference;
+  z += 0.5 * linearAccelZ * timeDifference * timeDifference;
+  
+  Serial.print("Accel X: ");
+  Serial.print(linearAccelX);
+  Serial.print(" Accel Y: ");
+  Serial.print(linearAccelY);
+  Serial.print(" Accel Z: ");
+  Serial.println(linearAccelZ);
   
   /* Display the floating point data */
   Serial.print("X: ");
@@ -153,6 +165,4 @@ void loop(void)
 //  Serial.println(mag, DEC);
 
   delay(BNO055_SAMPLERATE_DELAY_MS);
-
-  previousMillis = currentMillis;
 }
