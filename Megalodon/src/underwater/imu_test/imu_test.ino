@@ -22,12 +22,15 @@
 
 Adafruit_BNO055 bno = Adafruit_BNO055();
 
-float x;
-float y;
-float z;
+float vel_x;
+float vel_y;
+float vel_z;
 
 float currentMillis;
 float previousMillis;
+
+float innerCurrentMillis;
+float innerPreviousMillis;
 
 /**************************************************************************/
 /*
@@ -36,7 +39,7 @@ float previousMillis;
 /**************************************************************************/
 void setup(void)
 {
-  Serial.begin(9600);
+  Serial.begin(250000);
   Serial.println("Orientation Sensor Raw Data Test"); Serial.println("");
 
   /* Initialise the sensor */
@@ -60,12 +63,27 @@ void setup(void)
 
   Serial.println("Calibration status values: 0=uncalibrated, 3=fully calibrated");
 
-  x = 0;
-  y = 0;
-  z = 0;
+  vel_x = 0;
+  vel_y = 0;
+  vel_z = 0;
 
   previousMillis = millis() / 1000.0;
+  innerPreviousMillis = millis() / 1000.0;
 }
+
+float lastLinearAccelX = 0;
+float lastLinearAccelY = 0;
+float lastLinearAccelZ = 0;
+
+float lastVelX = 0;
+float lastVelY = 0;
+float lastVelZ = 0;
+
+float x = 0;
+float y = 0;
+float z = 0;
+
+bool isIntermediateStep = false;
 
 /**************************************************************************/
 /*
@@ -101,7 +119,8 @@ void loop(void)
   currentMillis = millis() / 1000.0;
   float timeDifference = currentMillis - previousMillis;
   previousMillis = currentMillis;
-  Serial.println(timeDifference);
+  Serial.print(timeDifference);
+  Serial.print("\t\t");
 
 //  if (linearAccelX < 0) {
 //    x += -linearAccelX * linearAccelX * timeDifference * timeDifference;
@@ -118,17 +137,62 @@ void loop(void)
 //  } else {
 //    z += linearAccelZ * linearAccelZ * timeDifference * timeDifference;
 //  }
+
+  if (abs(linearAccelX) < 0.2) {
+    linearAccelX = 0;
+  }
+  if (abs(linearAccelY) < 0.2) {
+    linearAccelY = 0;
+  }
+  if (abs(linearAccelZ) < 0.2) {
+    linearAccelZ = 0;
+  }
+
+  if (abs(linearAccelX) < 0.08) {
+    vel_x = 0;
+  }
+  if (abs(linearAccelY) < 0.08) {
+    vel_y = 0;
+  }
+  if (abs(linearAccelZ) < 0.08) {
+    vel_z = 0;
+  }
+
+  if (isIntermediateStep == false) {
+    innerCurrentMillis = millis() / 1000.0;
+    x += 0.5 * (vel_x + lastVelX) * (innerCurrentMillis - innerPreviousMillis);
+    y += 0.5 * (vel_y + lastVelY) * (innerCurrentMillis - innerPreviousMillis);
+    z += 0.5 * (vel_z + lastVelZ) * (innerCurrentMillis - innerPreviousMillis);
+   
+    lastVelX = vel_x;
+    lastVelY = vel_y;
+    lastVelZ = vel_z;
+
+    innerPreviousMillis = innerCurrentMillis;
+    isIntermediateStep = true;
+  } else {
+    isIntermediateStep = false;
+  }
+
+//  x += 0.5 * linearAccelX * timeDifference * timeDifference;
+//  y += 0.5 * linearAccelY * timeDifference * timeDifference;
+//  z += 0.5 * linearAccelZ * timeDifference * timeDifference;
   
-  x += 0.5 * linearAccelX * timeDifference * timeDifference;
-  y += 0.5 * linearAccelY * timeDifference * timeDifference;
-  z += 0.5 * linearAccelZ * timeDifference * timeDifference;
+  vel_x += 0.5 * (linearAccelX + lastLinearAccelX) * timeDifference;
+  vel_y += 0.5 * (linearAccelY + lastLinearAccelY) * timeDifference;
+  vel_z += 0.5 * (linearAccelZ + lastLinearAccelZ) * timeDifference;
+
+  lastLinearAccelX = linearAccelX;
+  lastLinearAccelY = linearAccelY;
+  lastLinearAccelZ = linearAccelZ;
   
   Serial.print("Accel X: ");
   Serial.print(linearAccelX);
   Serial.print(" Accel Y: ");
   Serial.print(linearAccelY);
   Serial.print(" Accel Z: ");
-  Serial.println(linearAccelZ);
+  Serial.print(linearAccelZ);
+  Serial.print("\t");
   
   /* Display the floating point data */
   Serial.print("X: ");
@@ -136,9 +200,8 @@ void loop(void)
   Serial.print(" Y: ");
   Serial.print(y * 100);
   Serial.print(" Z: ");
-  Serial.print(z * 100);
+  Serial.println(z * 100);
 //  Serial.print("\t\t");
-  Serial.println();
 
 //  // Quaternion data
 //  imu::Quaternion quat = bno.getQuat();
