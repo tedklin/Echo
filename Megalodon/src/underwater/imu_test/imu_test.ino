@@ -29,9 +29,6 @@ float vel_z;
 float currentMillis;
 float previousMillis;
 
-float innerCurrentMillis;
-float innerPreviousMillis;
-
 /**************************************************************************/
 /*
     Arduino setup function (automatically called at startup)
@@ -68,7 +65,6 @@ void setup(void)
   vel_z = 0;
 
   previousMillis = millis() / 1000.0;
-  innerPreviousMillis = millis() / 1000.0;
 }
 
 float lastLinearAccelX = 0;
@@ -83,7 +79,6 @@ float x = 0;
 float y = 0;
 float z = 0;
 
-bool isIntermediateStep = false;
 
 /**************************************************************************/
 /*
@@ -111,97 +106,41 @@ void loop(void)
   Serial.print(euler.z());
   Serial.println("\t\t");
 
-//  imu::Vector<3> linearAccel = bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
-//  float linearAccelX = linearAccel.x();
-//  float linearAccelY = linearAccel.y();
-//  float linearAccelZ = linearAccel.z();
-//
-//  currentMillis = millis() / 1000.0;
-//  float timeDifference = currentMillis - previousMillis;
-//  previousMillis = currentMillis;
-//  Serial.print(timeDifference);
-//  Serial.print("\t\t");
+  imu::Vector<3> linearAccel = bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
+  float linearAccelX = linearAccel.x();
+  float linearAccelY = linearAccel.y();
+  float linearAccelZ = linearAccel.z();
 
-//  if (linearAccelX < 0) {
-//    x += -linearAccelX * linearAccelX * timeDifference * timeDifference;
-//  } else {
-//    x += linearAccelX * linearAccelX * timeDifference * timeDifference;
-//  }
-//  if (linearAccelY < 0) {
-//    y += -linearAccelY * linearAccelY * timeDifference * timeDifference;
-//  } else {
-//    y += linearAccelY * linearAccelY * timeDifference * timeDifference;
-//  }
-//  if (linearAccelZ < 0) {
-//    z += -linearAccelZ * linearAccelZ * timeDifference * timeDifference;
-//  } else {
-//    z += linearAccelZ * linearAccelZ * timeDifference * timeDifference;
-//  }
+  currentMillis = millis() / 1000.0;
+  float timeDifference = currentMillis - previousMillis;
+  previousMillis = currentMillis;
+  Serial.print(timeDifference);
+  Serial.print("\t\t");
 
-//  if (abs(linearAccelX) < 0.2) {
-//    linearAccelX = 0;
-//  }
-//  if (abs(linearAccelY) < 0.2) {
-//    linearAccelY = 0;
-//  }
-//  if (abs(linearAccelZ) < 0.2) {
-//    linearAccelZ = 0;
-//  }
-//
-//  if (abs(linearAccelX) < 0.08) {
-//    vel_x = 0;
-//  }
-//  if (abs(linearAccelY) < 0.08) {
-//    vel_y = 0;
-//  }
-//  if (abs(linearAccelZ) < 0.08) {
-//    vel_z = 0;
-//  }
-//
-//  if (isIntermediateStep == false) {
-//    innerCurrentMillis = millis() / 1000.0;
-//    x += 0.5 * (vel_x + lastVelX) * (innerCurrentMillis - innerPreviousMillis);
-//    y += 0.5 * (vel_y + lastVelY) * (innerCurrentMillis - innerPreviousMillis);
-//    z += 0.5 * (vel_z + lastVelZ) * (innerCurrentMillis - innerPreviousMillis);
-//   
-//    lastVelX = vel_x;
-//    lastVelY = vel_y;
-//    lastVelZ = vel_z;
-//
-//    innerPreviousMillis = innerCurrentMillis;
-//    isIntermediateStep = true;
-//  } else {
-//    isIntermediateStep = false;
-//  }
+  vel_x += (linearAccelX + lastLinearAccelX) / 2 * timeDifference;
+  vel_y += (linearAccelY + lastLinearAccelY) / 2 * timeDifference;
+  vel_z += (linearAccelZ + lastLinearAccelZ) / 2 * timeDifference;
 
-//  x += 0.5 * linearAccelX * timeDifference * timeDifference;
-//  y += 0.5 * linearAccelY * timeDifference * timeDifference;
-//  z += 0.5 * linearAccelZ * timeDifference * timeDifference;
+  x += (vel_x + lastVelX) / 2 * timeDifference;
+  y += (vel_y + lastVelY) / 2 * timeDifference;
+  z += (vel_z + lastVelZ) / 2 * timeDifference;
   
-//  vel_x += 0.5 * (linearAccelX + lastLinearAccelX) * timeDifference;
-//  vel_y += 0.5 * (linearAccelY + lastLinearAccelY) * timeDifference;
-//  vel_z += 0.5 * (linearAccelZ + lastLinearAccelZ) * timeDifference;
-//
-//  lastLinearAccelX = linearAccelX;
-//  lastLinearAccelY = linearAccelY;
-//  lastLinearAccelZ = linearAccelZ;
-//  
-//  Serial.print("Accel X: ");
-//  Serial.print(linearAccelX);
-//  Serial.print(" Accel Y: ");
-//  Serial.print(linearAccelY);
-//  Serial.print(" Accel Z: ");
-//  Serial.print(linearAccelZ);
-//  Serial.print("\t");
-//  
-//  /* Display the floating point data */
-//  Serial.print("X: ");
-//  Serial.print(x * 100);
-//  Serial.print(" Y: ");
-//  Serial.print(y * 100);
-//  Serial.print(" Z: ");
-//  Serial.println(z * 100);
-//  Serial.print("\t\t");
+  lastLinearAccelX = linearAccelX;
+  lastLinearAccelY = linearAccelY;
+  lastLinearAccelZ = linearAccelZ;
+
+  lastVelX = vel_x;
+  lastVelY = vel_y;
+  lastVelZ = vel_z;
+
+  /* Display the floating point data */
+  Serial.print("X: ");
+  Serial.print(x);
+  Serial.print(" Y: ");
+  Serial.print(y);
+  Serial.print(" Z: ");
+  Serial.print(z);
+  Serial.println("\t\t");
 
 //  // Quaternion data
 //  imu::Quaternion quat = bno.getQuat();
