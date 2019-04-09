@@ -40,11 +40,11 @@ void setup(void)
   Serial.println("Orientation Sensor Raw Data Test"); Serial.println("");
 
   /* Initialise the sensor */
-  if(!bno.begin())
+  if (!bno.begin())
   {
     /* There was a problem detecting the BNO055 ... check your connections */
     Serial.print("Ooops, no BNO055 detected ... Check your wiring or I2C ADDR!");
-    while(1);
+    while (1);
   }
 
   delay(1000);
@@ -79,6 +79,10 @@ float x = 0;
 float y = 0;
 float z = 0;
 
+float resetOffsetYaw = 0;
+float resetOffsetPitch = 0;
+float resetOffsetRoll = 0;
+
 
 /**************************************************************************/
 /*
@@ -86,25 +90,34 @@ float z = 0;
     should go here)
 */
 /**************************************************************************/
+// Possible vector values can be:
+// - VECTOR_ACCELEROMETER - m/s^2
+// - VECTOR_MAGNETOMETER  - uT
+// - VECTOR_GYROSCOPE     - rad/s
+// - VECTOR_EULER         - degrees
+// - VECTOR_LINEARACCEL   - m/s^2
+// - VECTOR_GRAVITY       - m/s^2
+
 void loop(void)
 {
-  // Possible vector values can be:
-  // - VECTOR_ACCELEROMETER - m/s^2
-  // - VECTOR_MAGNETOMETER  - uT
-  // - VECTOR_GYROSCOPE     - rad/s
-  // - VECTOR_EULER         - degrees
-  // - VECTOR_LINEARACCEL   - m/s^2
-  // - VECTOR_GRAVITY       - m/s^2
+  // --------- orientation ---------- //
+
   imu::Vector<3> euler = bno.getVector(Adafruit_BNO055::VECTOR_EULER);
+
+  float yaw = euler.x() - resetOffsetYaw;
+  float roll = euler.y() - resetOffsetPitch;
+  float pitch = euler.z() - resetOffsetRoll;
 
   /* Display the floating point data */
   Serial.print("Yaw: ");
-  Serial.print(euler.x());
+  Serial.print(yaw);
   Serial.print(" Roll: ");
-  Serial.print(euler.y());
+  Serial.print(roll);
   Serial.print(" Pitch: ");
-  Serial.print(euler.z());
+  Serial.print(pitch);
   Serial.println("\t\t");
+
+  // --------- position ---------- //
 
   imu::Vector<3> linearAccel = bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
   float linearAccelX = linearAccel.x();
@@ -124,7 +137,7 @@ void loop(void)
   x += (vel_x + lastVelX) / 2 * timeDifference;
   y += (vel_y + lastVelY) / 2 * timeDifference;
   z += (vel_z + lastVelZ) / 2 * timeDifference;
-  
+
   lastLinearAccelX = linearAccelX;
   lastLinearAccelY = linearAccelY;
   lastLinearAccelZ = linearAccelZ;
@@ -142,29 +155,29 @@ void loop(void)
   Serial.print(z);
   Serial.println("\t\t");
 
-//  // Quaternion data
-//  imu::Quaternion quat = bno.getQuat();
-//  Serial.print("qW: ");
-//  Serial.print(quat.w(), 4);
-//  Serial.print(" qX: ");
-//  Serial.print(quat.y(), 4);
-//  Serial.print(" qY: ");
-//  Serial.print(quat.x(), 4);
-//  Serial.print(" qZ: ");
-//  Serial.print(quat.z(), 4);
-//  Serial.print("\t\t");
-//
-//  /* Display calibration status for each sensor. */
-//  uint8_t system, gyro, accel, mag = 0;
-//  bno.getCalibration(&system, &gyro, &accel, &mag);
-//  Serial.print("CALIBRATION: Sys=");
-//  Serial.print(system, DEC);
-//  Serial.print(" Gyro=");
-//  Serial.print(gyro, DEC);
-//  Serial.print(" Accel=");
-//  Serial.print(accel, DEC);
-//  Serial.print(" Mag=");
-//  Serial.println(mag, DEC);
+  //  // Quaternion data
+  //  imu::Quaternion quat = bno.getQuat();
+  //  Serial.print("qW: ");
+  //  Serial.print(quat.w(), 4);
+  //  Serial.print(" qX: ");
+  //  Serial.print(quat.y(), 4);
+  //  Serial.print(" qY: ");
+  //  Serial.print(quat.x(), 4);
+  //  Serial.print(" qZ: ");
+  //  Serial.print(quat.z(), 4);
+  //  Serial.print("\t\t");
+  //
+  //  /* Display calibration status for each sensor. */
+  //  uint8_t system, gyro, accel, mag = 0;
+  //  bno.getCalibration(&system, &gyro, &accel, &mag);
+  //  Serial.print("CALIBRATION: Sys=");
+  //  Serial.print(system, DEC);
+  //  Serial.print(" Gyro=");
+  //  Serial.print(gyro, DEC);
+  //  Serial.print(" Accel=");
+  //  Serial.print(accel, DEC);
+  //  Serial.print(" Mag=");
+  //  Serial.println(mag, DEC);
 
   delay(BNO055_SAMPLERATE_DELAY_MS);
 }
