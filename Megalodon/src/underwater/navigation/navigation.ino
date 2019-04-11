@@ -33,13 +33,6 @@ const float kPitchThreshold = 5;
 const float kRollThreshold = 5;
 const float kDepthThreshold = 5;
 
-byte motorPin9 = 9;
-byte motorPin10 = 10;
-byte motorPin11 = 11;
-byte motorPin6 = 6;
-byte motorPin5 = 5;
-byte motorPin3 = 3;
-
 // ======================================================================================= //
 //                                                                        END OF CONSTANTS //
 // ======================================================================================= //
@@ -62,8 +55,8 @@ void instantiateMotors() {
   m_horizontalRightMotor.attach(5);
   m_horizontalLeftMotor.attach(6);
   m_verticalFrontRightMotor.attach(3);
-  m_verticalFrontLeftMotor.attach(9);
-  m_verticalBackRightMotor.attach(10);
+  m_verticalFrontLeftMotor.attach(10);
+  m_verticalBackRightMotor.attach(9);
   m_verticalBackLeftMotor.attach(11);
 }
 
@@ -159,17 +152,71 @@ float m_pitchControlOutput = 0;
 float m_depthControlOutput = 0;
 float m_translationOutput = 0;
 
+float inputArray[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+
+void readFromSerial() {
+  // Get next command from Serial (add 1 for final 0)
+  char input[INPUT_SIZE + 1];
+  byte size = Serial.readBytes(input, INPUT_SIZE);
+  // Add the final 0 to end the C string
+  input[size] = 0;
+  Serial.println("afid");
+
+  // Read each command pair
+  int index = 0;
+  char* command = strtok(input, "&");
+  while (command != 0) {
+    // Split the command in two values
+    char* separator = strchr(command, ':');
+    if (separator != 0)
+    {
+      // Actually split the string in 2: replace ':' with 0
+      *separator = 0;
+      const char* commandType = command;
+      ++separator;
+      float input = atof(separator);
+
+      Serial.println(command);
+      Serial.println("Storing stuff");
+
+      if (strcmp(commandType, "hL") == 0) {
+        inputArray[0] = input;
+        Serial.println("Storing 0");
+      } else if (strcmp(commandType, "hR") == 0) {
+        inputArray[1] = input;
+        Serial.println("Storing 1");
+      } else if (strcmp(commandType, "vFL") == 0) {
+        inputArray[2] = input;
+        Serial.println("Storing 2");
+      } else if (strcmp(commandType, "vFR") == 0) {
+        inputArray[3] = input;
+        Serial.println("Storing 3");
+      } else if (strcmp(commandType, "vBL") == 0) {
+        inputArray[4] = input;
+        Serial.println("Storing 4");
+      } else if (strcmp(commandType, "vBR") == 0) {
+        inputArray[5] = input;
+        Serial.println("Storing 5");
+      }
+    }
+    // Find the next command in input string
+    command = strtok(0, "&");
+    Serial.print("Calculating: ");
+    Serial.println(index);
+  }
+}
+
 /**
  * @param Servo motor 
  * @param float throttle (-1.0 to 1.0)
  */
 float calculateThrottle(float throttle) {
-  float input = throttle * 400 + 1500;
-  if (input > 1.0) {
-    input = 1.0;
-  } else if (input < -1.0) {
-    input = -1.0;
+  if (throttle > 1.0) {
+    throttle = 1.0;
+  } else if (throttle < -1.0) {
+    throttle = -1.0;
   }
+  float input = throttle * 400 + 1500;
   return input;
 }
 
@@ -184,19 +231,19 @@ void updateMotorInput() {
 //  setThrottle(m_verticalBackRightMotor, m_verticalBackRightPower);
 //  setThrottle(m_verticalBackLeftMotor, m_verticalBackLeftPower);
 
-//  m_horizontalRightMotor.writeMicroseconds(calculateThrottle(0.3));
-//  m_horizontalLeftMotor.writeMicroseconds(calculateThrottle(0.3));
-//  m_verticalFrontRightMotor.writeMicroseconds(calculateThrottle(0.3));
-//  m_verticalFrontLeftMotor.writeMicroseconds(calculateThrottle(0.3));
-//  m_verticalBackRightMotor.writeMicroseconds(calculateThrottle(0.3));
-//  m_verticalBackLeftMotor.writeMicroseconds(calculateThrottle(0.3));
+  m_horizontalRightMotor.writeMicroseconds(calculateThrottle(0.3));
+  m_horizontalLeftMotor.writeMicroseconds(calculateThrottle(0.3));
+  m_verticalFrontRightMotor.writeMicroseconds(calculateThrottle(0.3));
+  m_verticalFrontLeftMotor.writeMicroseconds(calculateThrottle(0.3));
+  m_verticalBackRightMotor.writeMicroseconds(calculateThrottle(0.3));
+  m_verticalBackLeftMotor.writeMicroseconds(calculateThrottle(0.3));
 
-  m_horizontalRightMotor.writeMicroseconds(1500);
-  m_horizontalLeftMotor.writeMicroseconds(1500);
-  m_verticalFrontRightMotor.writeMicroseconds(1500);
-  m_verticalFrontLeftMotor.writeMicroseconds(1500);
-  m_verticalBackRightMotor.writeMicroseconds(1500);
-  m_verticalBackLeftMotor.writeMicroseconds(1500);
+//  m_horizontalRightMotor.writeMicroseconds(1500);
+//  m_horizontalLeftMotor.writeMicroseconds(1500);
+//  m_verticalFrontRightMotor.writeMicroseconds(1500);
+//  m_verticalFrontLeftMotor.writeMicroseconds(1500);
+//  m_verticalBackRightMotor.writeMicroseconds(1500);
+//  m_verticalBackLeftMotor.writeMicroseconds(1500);
 }
 
 /**
