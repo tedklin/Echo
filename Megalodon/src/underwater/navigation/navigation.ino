@@ -9,7 +9,7 @@
 //                                                                      START OF CONSTANTS // 
 // ======================================================================================= //
 
-#define LOOP_TIME_DELAY_MS (100)
+#define LOOP_TIME_DELAY_MS (200)
 
 const float kYawP = 0;
 const float kYawI = 0;
@@ -32,6 +32,13 @@ const float kYawThreshold = 5;
 const float kPitchThreshold = 5;
 const float kRollThreshold = 5;
 const float kDepthThreshold = 5;
+
+byte motorPin9 = 9;
+byte motorPin10 = 10;
+byte motorPin11 = 11;
+byte motorPin6 = 6;
+byte motorPin5 = 5;
+byte motorPin3 = 3;
 
 // ======================================================================================= //
 //                                                                        END OF CONSTANTS //
@@ -98,38 +105,38 @@ float m_measuredDepth = 0;
 float m_measuredAltitude = 0;
 float m_measuredPressure = 0;
 
-void updateIMU() {
-  imu::Vector<3> euler = m_imu.getVector(Adafruit_BNO055::VECTOR_EULER);
-  m_measuredYaw = euler.x();
-  m_measuredRoll = euler.y();
-  m_measuredPitch = euler.z();
-
-  imu::Vector<3> linearAccel = m_imu.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
-  m_measuredX = linearAccel.x();
-  m_measuredY = linearAccel.y();
-  m_measuredZ = linearAccel.z();
-}
-
-void updateBarometer() {
-  m_barometer.read();
-  m_measuredDepth = m_barometer.depth();
-  m_measuredAltitude = m_barometer.altitude();
-  m_measuredPressure = m_barometer.pressure();
-}
-
-void displaySensorStatus() {
-  Serial.println("Calibration status values: 0=uncalibrated, 3=fully calibrated");
-  uint8_t system, gyro, accel, mag = 0;
-  m_imu.getCalibration(&system, &gyro, &accel, &mag);
-  Serial.print("CALIBRATION: Sys=");
-  Serial.print(system, DEC);
-  Serial.print(" Gyro=");
-  Serial.print(gyro, DEC);
-  Serial.print(" Accel=");
-  Serial.print(accel, DEC);
-  Serial.print(" Mag=");
-  Serial.println(mag, DEC);
-}
+//void updateIMU() {
+//  imu::Vector<3> euler = m_imu.getVector(Adafruit_BNO055::VECTOR_EULER);
+//  m_measuredYaw = euler.x();
+//  m_measuredRoll = euler.y();
+//  m_measuredPitch = euler.z();
+//
+//  imu::Vector<3> linearAccel = m_imu.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
+//  m_measuredX = linearAccel.x();
+//  m_measuredY = linearAccel.y();
+//  m_measuredZ = linearAccel.z();
+//}
+//
+//void updateBarometer() {
+//  m_barometer.read();
+//  m_measuredDepth = m_barometer.depth();
+//  m_measuredAltitude = m_barometer.altitude();
+//  m_measuredPressure = m_barometer.pressure();
+//}
+//
+//void displaySensorStatus() {
+//  Serial.println("Calibration status values: 0=uncalibrated, 3=fully calibrated");
+//  uint8_t system, gyro, accel, mag = 0;
+//  m_imu.getCalibration(&system, &gyro, &accel, &mag);
+//  Serial.print("CALIBRATION: Sys=");
+//  Serial.print(system, DEC);
+//  Serial.print(" Gyro=");
+//  Serial.print(gyro, DEC);
+//  Serial.print(" Accel=");
+//  Serial.print(accel, DEC);
+//  Serial.print(" Mag=");
+//  Serial.println(mag, DEC);
+//}
 
 // ======================================================================================= //
 //                                                         END OF STATE ESTIMATION METHODS //
@@ -156,38 +163,59 @@ float m_translationOutput = 0;
  * @param Servo motor 
  * @param float throttle (-1.0 to 1.0)
  */
-void setThrottle(Servo motor, float throttle) {
+float calculateThrottle(float throttle) {
   float input = throttle * 400 + 1500;
   if (input > 1.0) {
     input = 1.0;
   } else if (input < -1.0) {
     input = -1.0;
   }
-  motor.writeMicroseconds(input);
+  return input;
 }
 
 /**
  * Actuate motors
  */
 void updateMotorInput() {
-  setThrottle(m_horizontalRightMotor, m_horizontalRightPower);
-  setThrottle(m_horizontalLeftMotor, m_horizontalLeftPower);
-  setThrottle(m_verticalFrontRightMotor, m_verticalFrontRightPower);
-  setThrottle(m_verticalFrontLeftMotor, m_verticalFrontLeftPower);
-  setThrottle(m_verticalBackRightMotor, m_verticalBackRightPower);
-  setThrottle(m_verticalBackLeftMotor, m_verticalBackLeftPower);
+//  setThrottle(m_horizontalRightMotor, m_horizontalRightPower);
+//  setThrottle(m_horizontalLeftMotor, m_horizontalLeftPower);
+//  setThrottle(m_verticalFrontRightMotor, m_verticalFrontRightPower);
+//  setThrottle(m_verticalFrontLeftMotor, m_verticalFrontLeftPower);
+//  setThrottle(m_verticalBackRightMotor, m_verticalBackRightPower);
+//  setThrottle(m_verticalBackLeftMotor, m_verticalBackLeftPower);
+
+//  m_horizontalRightMotor.writeMicroseconds(calculateThrottle(0.3));
+//  m_horizontalLeftMotor.writeMicroseconds(calculateThrottle(0.3));
+//  m_verticalFrontRightMotor.writeMicroseconds(calculateThrottle(0.3));
+//  m_verticalFrontLeftMotor.writeMicroseconds(calculateThrottle(0.3));
+//  m_verticalBackRightMotor.writeMicroseconds(calculateThrottle(0.3));
+//  m_verticalBackLeftMotor.writeMicroseconds(calculateThrottle(0.3));
+
+  m_horizontalRightMotor.writeMicroseconds(1500);
+  m_horizontalLeftMotor.writeMicroseconds(1500);
+  m_verticalFrontRightMotor.writeMicroseconds(1500);
+  m_verticalFrontLeftMotor.writeMicroseconds(1500);
+  m_verticalBackRightMotor.writeMicroseconds(1500);
+  m_verticalBackLeftMotor.writeMicroseconds(1500);
 }
 
 /**
  * Stop motors
  */
 void stopAll() {
-  setThrottle(m_horizontalRightMotor, 0.0);
-  setThrottle(m_horizontalLeftMotor, 0.0);
-  setThrottle(m_verticalFrontRightMotor, 0.0);
-  setThrottle(m_verticalFrontLeftMotor, 0.0);
-  setThrottle(m_verticalBackRightMotor, 0.0);
-  setThrottle(m_verticalBackLeftMotor, 0.0);
+//  m_horizontalRightMotor.writeMicroseconds(calculateThrottle(0));
+//  m_horizontalLeftMotor.writeMicroseconds(calculateThrottle(0));
+//  m_verticalFrontRightMotor.writeMicroseconds(calculateThrottle(0));
+//  m_verticalFrontLeftMotor.writeMicroseconds(calculateThrottle(0));
+//  m_verticalBackRightMotor.writeMicroseconds(calculateThrottle(0));
+//  m_verticalBackLeftMotor.writeMicroseconds(calculateThrottle(0));
+
+  m_horizontalRightMotor.writeMicroseconds(1500);
+  m_horizontalLeftMotor.writeMicroseconds(1500);
+  m_verticalFrontRightMotor.writeMicroseconds(1500);
+  m_verticalFrontLeftMotor.writeMicroseconds(1500);
+  m_verticalBackRightMotor.writeMicroseconds(1500);
+  m_verticalBackLeftMotor.writeMicroseconds(1500);
 }
 
 /**
@@ -251,23 +279,23 @@ void setup() {
   Serial.println("MOTORS INSTANTIATING");
   instantiateMotors();
   stopAll();
-  delay(5000);
+  delay(10000);
   Serial.println("MOTORS INSTANTIATED");
 
-  Serial.println("IMU INSTANTIATING");
-  instantiateIMU();
-  delay(5000);
-  Serial.println("IMU INSTANTIATED");
-
-  Serial.println("BAROMETER INSTANTIATING");
-  instantiateBarometer();
-  delay(5000);
-  Serial.println("BAROMETER INSTANTIATED");
+//  Serial.println("IMU INSTANTIATING");
+//  instantiateIMU();
+//  delay(5000);
+//  Serial.println("IMU INSTANTIATED");
+//
+//  Serial.println("BAROMETER INSTANTIATING");
+//  instantiateBarometer();
+//  delay(5000);
+//  Serial.println("BAROMETER INSTANTIATED");
 }
 
 void loop() {
-  updateIMU();
-  updateBarometer();
+//  updateIMU();
+//  updateBarometer();
 
   float desiredYaw = 0;
   float desiredRoll = 0;
