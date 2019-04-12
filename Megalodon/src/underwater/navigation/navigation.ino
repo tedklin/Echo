@@ -205,6 +205,8 @@ void readFromSerial() {
         m_desiredPitch = input;
       } else if (strcmp(commandType, "roll") == 0) {
         m_desiredRoll = input;
+      } else if (strcmp(commandType, "depth") == 0) {
+        m_desiredDepth = input;
       } else if (strcmp(commandType, "trans") == 0) {
         m_translationOutput = input;
       } 
