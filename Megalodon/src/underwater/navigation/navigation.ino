@@ -41,23 +41,23 @@ const float kDepthThreshold = 5;
 //                                                         START OF HARDWARE INSTANTIATION //
 // ======================================================================================= //
 
-Servo m_horizontalRightMotor;
 Servo m_horizontalLeftMotor;
-Servo m_verticalFrontRightMotor;
+Servo m_horizontalRightMotor;
 Servo m_verticalFrontLeftMotor;
-Servo m_verticalBackRightMotor;
+Servo m_verticalFrontRightMotor;
 Servo m_verticalBackLeftMotor;
+Servo m_verticalBackRightMotor;
 
 Adafruit_BNO055 m_imu;
 MS5837 m_barometer;
 
 void instantiateMotors() {
-  m_horizontalRightMotor.attach(5);
   m_horizontalLeftMotor.attach(6);
-  m_verticalFrontRightMotor.attach(3);
+  m_horizontalRightMotor.attach(5);
   m_verticalFrontLeftMotor.attach(10);
-  m_verticalBackRightMotor.attach(9);
+  m_verticalFrontRightMotor.attach(3);
   m_verticalBackLeftMotor.attach(11);
+  m_verticalBackRightMotor.attach(9);
 }
 
 void instantiateIMU() {
@@ -98,38 +98,38 @@ float m_measuredDepth = 0;
 float m_measuredAltitude = 0;
 float m_measuredPressure = 0;
 
-//void updateIMU() {
-//  imu::Vector<3> euler = m_imu.getVector(Adafruit_BNO055::VECTOR_EULER);
-//  m_measuredYaw = euler.x();
-//  m_measuredRoll = euler.y();
-//  m_measuredPitch = euler.z();
-//
-//  imu::Vector<3> linearAccel = m_imu.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
-//  m_measuredX = linearAccel.x();
-//  m_measuredY = linearAccel.y();
-//  m_measuredZ = linearAccel.z();
-//}
-//
-//void updateBarometer() {
-//  m_barometer.read();
-//  m_measuredDepth = m_barometer.depth();
-//  m_measuredAltitude = m_barometer.altitude();
-//  m_measuredPressure = m_barometer.pressure();
-//}
-//
-//void displaySensorStatus() {
-//  Serial.println("Calibration status values: 0=uncalibrated, 3=fully calibrated");
-//  uint8_t system, gyro, accel, mag = 0;
-//  m_imu.getCalibration(&system, &gyro, &accel, &mag);
-//  Serial.print("CALIBRATION: Sys=");
-//  Serial.print(system, DEC);
-//  Serial.print(" Gyro=");
-//  Serial.print(gyro, DEC);
-//  Serial.print(" Accel=");
-//  Serial.print(accel, DEC);
-//  Serial.print(" Mag=");
-//  Serial.println(mag, DEC);
-//}
+void updateIMU() {
+  imu::Vector<3> euler = m_imu.getVector(Adafruit_BNO055::VECTOR_EULER);
+  m_measuredYaw = euler.x();
+  m_measuredRoll = euler.y();
+  m_measuredPitch = euler.z();
+
+  imu::Vector<3> linearAccel = m_imu.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
+  m_measuredX = linearAccel.x();
+  m_measuredY = linearAccel.y();
+  m_measuredZ = linearAccel.z();
+}
+
+void updateBarometer() {
+  m_barometer.read();
+  m_measuredDepth = m_barometer.depth();
+  m_measuredAltitude = m_barometer.altitude();
+  m_measuredPressure = m_barometer.pressure();
+}
+
+void displaySensorStatus() {
+  Serial.println("Calibration status values: 0=uncalibrated, 3=fully calibrated");
+  uint8_t system, gyro, accel, mag = 0;
+  m_imu.getCalibration(&system, &gyro, &accel, &mag);
+  Serial.print("CALIBRATION: Sys=");
+  Serial.print(system, DEC);
+  Serial.print(" Gyro=");
+  Serial.print(gyro, DEC);
+  Serial.print(" Accel=");
+  Serial.print(accel, DEC);
+  Serial.print(" Mag=");
+  Serial.println(mag, DEC);
+}
 
 // ======================================================================================= //
 //                                                         END OF STATE ESTIMATION METHODS //
@@ -223,19 +223,12 @@ void updateMotorInput() {
 //  setThrottle(m_verticalBackRightMotor, m_verticalBackRightPower);
 //  setThrottle(m_verticalBackLeftMotor, m_verticalBackLeftPower);
 
-  m_horizontalRightMotor.writeMicroseconds(calculateThrottle(inputArray[1]));
   m_horizontalLeftMotor.writeMicroseconds(calculateThrottle(inputArray[0]));
-  m_verticalFrontRightMotor.writeMicroseconds(calculateThrottle(inputArray[3]));
+  m_horizontalRightMotor.writeMicroseconds(calculateThrottle(inputArray[1]));
   m_verticalFrontLeftMotor.writeMicroseconds(calculateThrottle(inputArray[2]));
-  m_verticalBackRightMotor.writeMicroseconds(calculateThrottle(inputArray[5]));
+  m_verticalFrontRightMotor.writeMicroseconds(calculateThrottle(inputArray[3]));
   m_verticalBackLeftMotor.writeMicroseconds(calculateThrottle(inputArray[4]));
-
-//  m_horizontalRightMotor.writeMicroseconds(1500);
-//  m_horizontalLeftMotor.writeMicroseconds(1500);
-//  m_verticalFrontRightMotor.writeMicroseconds(1500);
-//  m_verticalFrontLeftMotor.writeMicroseconds(1500);
-//  m_verticalBackRightMotor.writeMicroseconds(1500);
-//  m_verticalBackLeftMotor.writeMicroseconds(1500);
+  m_verticalBackRightMotor.writeMicroseconds(calculateThrottle(inputArray[5]));
 }
 
 /**
@@ -249,12 +242,12 @@ void stopAll() {
 //  m_verticalBackRightMotor.writeMicroseconds(calculateThrottle(0));
 //  m_verticalBackLeftMotor.writeMicroseconds(calculateThrottle(0));
 
-  m_horizontalRightMotor.writeMicroseconds(1500);
   m_horizontalLeftMotor.writeMicroseconds(1500);
-  m_verticalFrontRightMotor.writeMicroseconds(1500);
+  m_horizontalRightMotor.writeMicroseconds(1500);
   m_verticalFrontLeftMotor.writeMicroseconds(1500);
-  m_verticalBackRightMotor.writeMicroseconds(1500);
+  m_verticalFrontRightMotor.writeMicroseconds(1500);
   m_verticalBackLeftMotor.writeMicroseconds(1500);
+  m_verticalBackRightMotor.writeMicroseconds(1500);
 }
 
 /**
@@ -340,7 +333,7 @@ void loop() {
   float desiredRoll = 0;
   float desiredPitch = 0;
   float desiredDepth = 0;
-  m_translationOutput = 1;
+  m_translationOutput = 0;
   
   if (isDepthReached(desiredDepth)) {
     goToDepth(desiredDepth);
@@ -349,13 +342,13 @@ void loop() {
     rotate(desiredYaw, desiredRoll, desiredPitch);
     m_translationOutput = 0;
   }
-  
+
+  m_horizontalLeftPower = -m_yawControlOutput + m_translationOutput;
   m_horizontalRightPower = m_yawControlOutput + m_translationOutput;
-  m_horizontalRightPower = -m_yawControlOutput + m_translationOutput;
-  m_verticalFrontRightPower = m_rollControlOutput + m_pitchControlOutput + m_depthControlOutput;
   m_verticalFrontLeftPower = m_rollControlOutput - m_pitchControlOutput + m_depthControlOutput;
+  m_verticalFrontRightPower = m_rollControlOutput + m_pitchControlOutput + m_depthControlOutput;
+  m_verticalBackLeftPower = -m_rollControlOutput - m_pitchControlOutput + m_depthControlOutput;
   m_verticalBackRightPower = -m_rollControlOutput + m_pitchControlOutput + m_depthControlOutput;
-  m_verticalBackLeftPower = -m_rollControlOutput - m_pitchControlOutput + m_depthControlOutput;  
 
   readFromSerial();
   updateMotorInput();

@@ -6,6 +6,7 @@ float inputArray[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
 // 0.2&0.2&0.2&0.2&0.2&0.2
 // hL:0.2&hR:0.2&vFL:0.2&vFR:0.2&vBL:0.2&vBR:0.2
+// hL:0&hR:0&vFL:0&vFR:0&vBL:0&vBR:0
 
 //const char* hL = "hL";
 //const char* hR = "hR";
