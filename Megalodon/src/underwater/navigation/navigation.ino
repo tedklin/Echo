@@ -147,7 +147,7 @@ float m_yawControlOutput = 0;
 float m_rollControlOutput = 0;
 float m_pitchControlOutput = 0;
 float m_depthControlOutput = 0;
-float m_translationOutput = 0;
+float m_translationControlOutput = 0;
 
 float m_yawError = 0;
 float m_rollError = 0;
@@ -208,7 +208,7 @@ void receiveSerialInput() {
       } else if (strcmp(commandType, "depth") == 0) {
         m_desiredDepth = input;
       } else if (strcmp(commandType, "trans") == 0) {
-        m_translationOutput = input;
+        m_translationError = input;
       } 
     }
     // Find the next command in input string
@@ -245,11 +245,21 @@ void rotate(float desiredYaw, float desiredRoll, float desiredPitch) {
 void goToDepth(float desiredDepth) {
   m_depthError = desiredDepth - m_measuredDepth;
   
-  rotate(m_measuredYaw, 0, 0);
-  if (isPitchAligned(0) && isRollAligned(0)) {
+  if (isPitchAligned(0) && isRollAligned(0) ) {
     m_depthControlOutput = kDepthP * m_depthError;
   } else {
     m_depthControlOutput = 0;
+  }
+}
+
+/**
+ * Translate to based on error input
+ */
+void translate() {
+  if (isYawAligned(m_desiredYaw) && isPitchAligned(m_desiredPitch) && isRollAligned(m_desiredRoll) && isDepthReached(m_desiredDepth) {
+    m_translationControlOutput = kTranslationP * m_translationError;
+  } else {
+    m_translationControlOutput = 0;
   }
 }
 
@@ -316,6 +326,18 @@ void directMotorControl() {
 }
 
 /**
+ * Autonomous motor control
+ */
+void autonomousControl() {
+  m_horizontalLeftPower = -m_yawControlOutput + m_translationControlOutput;
+  m_horizontalRightPower = m_yawControlOutput + m_translationControlOutput;
+  m_verticalFrontLeftPower = m_rollControlOutput - m_pitchControlOutput + m_depthControlOutput;
+  m_verticalFrontRightPower = m_rollControlOutput + m_pitchControlOutput + m_depthControlOutput;
+  m_verticalBackLeftPower = -m_rollControlOutput - m_pitchControlOutput + m_depthControlOutput;
+  m_verticalBackRightPower = -m_rollControlOutput + m_pitchControlOutput + m_depthControlOutput;
+}
+
+/**
  * Stop motors
  */
 void stopAll() {
@@ -375,20 +397,11 @@ void loop() {
   updateIMU();
   updateBarometer();
   
-  m_translationOutput = 0;
-  
-  if (isDepthReached(m_desiredDepth)) {
+  if (!isDepthReached(m_desiredDepth)) {
     goToDepth(m_desiredDepth);
   } else if (!isYawAligned(m_desiredYaw) && !isRollAligned(m_desiredRoll) && !isPitchAligned(m_desiredPitch)) {
     rotate(m_desiredYaw, m_desiredRoll, m_desiredPitch);
   }
-
-  m_horizontalLeftPower = -m_yawControlOutput + m_translationOutput;
-  m_horizontalRightPower = m_yawControlOutput + m_translationOutput;
-  m_verticalFrontLeftPower = m_rollControlOutput - m_pitchControlOutput + m_depthControlOutput;
-  m_verticalFrontRightPower = m_rollControlOutput + m_pitchControlOutput + m_depthControlOutput;
-  m_verticalBackLeftPower = -m_rollControlOutput - m_pitchControlOutput + m_depthControlOutput;
-  m_verticalBackRightPower = -m_rollControlOutput + m_pitchControlOutput + m_depthControlOutput;
 
   Serial.println("-----------");
   Serial.print("hL : ");
