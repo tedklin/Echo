@@ -152,7 +152,11 @@ float m_pitchControlOutput = 0;
 float m_depthControlOutput = 0;
 float m_translationOutput = 0;
 
+#define INPUT_SIZE 30
+
 float inputArray[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+// hL:0.2&hR:0.2&vFL:0.2&vFR:0.2&vBL:0.2&vBR:0.2
+// hL:0&hR:0&vFL:0&vFR:0&vBL:0&vBR:0
 
 void readFromSerial() {
   // Get next command from Serial (add 1 for final 0)
@@ -160,7 +164,6 @@ void readFromSerial() {
   byte size = Serial.readBytes(input, INPUT_SIZE);
   // Add the final 0 to end the C string
   input[size] = 0;
-  Serial.println("afid");
 
   // Read each command pair
   int index = 0;
@@ -176,33 +179,22 @@ void readFromSerial() {
       ++separator;
       float input = atof(separator);
 
-      Serial.println(command);
-      Serial.println("Storing stuff");
-
       if (strcmp(commandType, "hL") == 0) {
         inputArray[0] = input;
-        Serial.println("Storing 0");
       } else if (strcmp(commandType, "hR") == 0) {
         inputArray[1] = input;
-        Serial.println("Storing 1");
       } else if (strcmp(commandType, "vFL") == 0) {
         inputArray[2] = input;
-        Serial.println("Storing 2");
       } else if (strcmp(commandType, "vFR") == 0) {
         inputArray[3] = input;
-        Serial.println("Storing 3");
       } else if (strcmp(commandType, "vBL") == 0) {
         inputArray[4] = input;
-        Serial.println("Storing 4");
       } else if (strcmp(commandType, "vBR") == 0) {
         inputArray[5] = input;
-        Serial.println("Storing 5");
       }
     }
     // Find the next command in input string
     command = strtok(0, "&");
-    Serial.print("Calculating: ");
-    Serial.println(index);
   }
 }
 
@@ -231,12 +223,12 @@ void updateMotorInput() {
 //  setThrottle(m_verticalBackRightMotor, m_verticalBackRightPower);
 //  setThrottle(m_verticalBackLeftMotor, m_verticalBackLeftPower);
 
-  m_horizontalRightMotor.writeMicroseconds(calculateThrottle(0.3));
-  m_horizontalLeftMotor.writeMicroseconds(calculateThrottle(0.3));
-  m_verticalFrontRightMotor.writeMicroseconds(calculateThrottle(0.3));
-  m_verticalFrontLeftMotor.writeMicroseconds(calculateThrottle(0.3));
-  m_verticalBackRightMotor.writeMicroseconds(calculateThrottle(0.3));
-  m_verticalBackLeftMotor.writeMicroseconds(calculateThrottle(0.3));
+  m_horizontalRightMotor.writeMicroseconds(calculateThrottle(inputArray[1]));
+  m_horizontalLeftMotor.writeMicroseconds(calculateThrottle(inputArray[0]));
+  m_verticalFrontRightMotor.writeMicroseconds(calculateThrottle(inputArray[3]));
+  m_verticalFrontLeftMotor.writeMicroseconds(calculateThrottle(inputArray[2]));
+  m_verticalBackRightMotor.writeMicroseconds(calculateThrottle(inputArray[5]));
+  m_verticalBackLeftMotor.writeMicroseconds(calculateThrottle(inputArray[4]));
 
 //  m_horizontalRightMotor.writeMicroseconds(1500);
 //  m_horizontalLeftMotor.writeMicroseconds(1500);
@@ -364,7 +356,8 @@ void loop() {
   m_verticalFrontLeftPower = m_rollControlOutput - m_pitchControlOutput + m_depthControlOutput;
   m_verticalBackRightPower = -m_rollControlOutput + m_pitchControlOutput + m_depthControlOutput;
   m_verticalBackLeftPower = -m_rollControlOutput - m_pitchControlOutput + m_depthControlOutput;  
-  
+
+  readFromSerial();
   updateMotorInput();
 
   delay(LOOP_TIME_DELAY_MS);
