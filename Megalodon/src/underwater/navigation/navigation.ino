@@ -90,9 +90,6 @@ void instantiateBarometer() {
 float m_measuredYaw = 0;
 float m_measuredPitch = 0;
 float m_measuredRoll = 0;
-float m_measuredX = 0;
-float m_measuredY = 0;
-float m_measuredZ = 0;
 
 float m_measuredDepth = 0;
 float m_measuredAltitude = 0;
@@ -103,11 +100,6 @@ void updateIMU() {
   m_measuredYaw = euler.x();
   m_measuredRoll = euler.y();
   m_measuredPitch = euler.z();
-
-  imu::Vector<3> linearAccel = m_imu.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
-  m_measuredX = linearAccel.x();
-  m_measuredY = linearAccel.y();
-  m_measuredZ = linearAccel.z();
 }
 
 void updateBarometer() {
@@ -151,6 +143,12 @@ float m_rollControlOutput = 0;
 float m_pitchControlOutput = 0;
 float m_depthControlOutput = 0;
 float m_translationOutput = 0;
+
+float m_yawError = 0;
+float m_rollError = 0;
+float m_pitchError = 0;
+float m_depthError = 0;
+float m_translationError = 0;
 
 #define INPUT_SIZE 30
 
@@ -216,19 +214,31 @@ float calculateThrottle(float throttle) {
  * Actuate motors
  */
 void updateMotorInput() {
-//  setThrottle(m_horizontalRightMotor, m_horizontalRightPower);
-//  setThrottle(m_horizontalLeftMotor, m_horizontalLeftPower);
-//  setThrottle(m_verticalFrontRightMotor, m_verticalFrontRightPower);
-//  setThrottle(m_verticalFrontLeftMotor, m_verticalFrontLeftPower);
-//  setThrottle(m_verticalBackRightMotor, m_verticalBackRightPower);
-//  setThrottle(m_verticalBackLeftMotor, m_verticalBackLeftPower);
+  setThrottle(m_horizontalLeftMotor, m_horizontalLeftPower);
+  setThrottle(m_horizontalRightMotor, m_horizontalRightPower);
+  setThrottle(m_verticalFrontLeftMotor, m_verticalFrontLeftPower);
+  setThrottle(m_verticalFrontRightMotor, m_verticalFrontRightPower);
+  setThrottle(m_verticalBackLeftMotor, m_verticalBackLeftPower);
+  setThrottle(m_verticalBackRightMotor, m_verticalBackRightPower);
 
-  m_horizontalLeftMotor.writeMicroseconds(calculateThrottle(inputArray[0]));
-  m_horizontalRightMotor.writeMicroseconds(calculateThrottle(inputArray[1]));
-  m_verticalFrontLeftMotor.writeMicroseconds(calculateThrottle(inputArray[2]));
-  m_verticalFrontRightMotor.writeMicroseconds(calculateThrottle(inputArray[3]));
-  m_verticalBackLeftMotor.writeMicroseconds(calculateThrottle(inputArray[4]));
-  m_verticalBackRightMotor.writeMicroseconds(calculateThrottle(inputArray[5]));
+//  m_horizontalLeftMotor.writeMicroseconds(calculateThrottle(inputArray[0]));
+//  m_horizontalRightMotor.writeMicroseconds(calculateThrottle(inputArray[1]));
+//  m_verticalFrontLeftMotor.writeMicroseconds(calculateThrottle(inputArray[2]));
+//  m_verticalFrontRightMotor.writeMicroseconds(calculateThrottle(inputArray[3]));
+//  m_verticalBackLeftMotor.writeMicroseconds(calculateThrottle(inputArray[4]));
+//  m_verticalBackRightMotor.writeMicroseconds(calculateThrottle(inputArray[5]));
+}
+
+/**
+ * Direct motor control
+ */
+void directMotorControl() {
+  m_horizontalLeftPower = calculateThrottle(inputArray[0]);
+  m_horizontalRightPower = calculateThrottle(inputArray[1]);
+  m_verticalFrontLeftPower = calculateThrottle(inputArray[2]);
+  m_verticalFrontRightPower = calculateThrottle(inputArray[3]);
+  m_verticalBackLeftPower = calculateThrottle(inputArray[4]);
+  m_verticalBackRightPower = calculateThrottle(inputArray[5]);
 }
 
 /**
@@ -257,9 +267,13 @@ void stopAll() {
  * @param desiredPitch
  */
 void rotate(float desiredYaw, float desiredRoll, float desiredPitch) {
-  m_pitchControlOutput = kPitchP * (desiredPitch - m_measuredPitch);
-  m_rollControlOutput = kRollP * (desiredRoll - m_measuredRoll);
-  m_yawControlOutput = kYawP * (desiredYaw - m_measuredYaw);
+  m_pitchError = desiredPitch - m_measuredPitch;
+  m_rollError = desiredRoll - m_measuredRoll;
+  m_yawError = desiredYaw - m_measuredYaw;
+  
+  m_pitchControlOutput = kPitchP * m_pitchError;
+  m_rollControlOutput = kRollP * m_rollError;
+  m_yawControlOutput = kYawP * m_yawError;
   if (!isPitchAligned(desiredPitch)) {
     m_rollControlOutput = 0;
     m_yawControlOutput = 0;
@@ -273,9 +287,11 @@ void rotate(float desiredYaw, float desiredRoll, float desiredPitch) {
  * @param desiredDepth
  */
 void goToDepth(float desiredDepth) {
+  m_depthError = desiredDepth - m_measuredDepth;
+  
   rotate(m_measuredYaw, 0, 0);
   if (isPitchAligned(0) && isRollAligned(0)) {
-    m_depthControlOutput = kDepthP * (desiredDepth - m_measuredDepth);
+    m_depthControlOutput = kDepthP * m_depthError;
   } else {
     m_depthControlOutput = 0;
   }
@@ -350,8 +366,9 @@ void loop() {
   m_verticalBackLeftPower = -m_rollControlOutput - m_pitchControlOutput + m_depthControlOutput;
   m_verticalBackRightPower = -m_rollControlOutput + m_pitchControlOutput + m_depthControlOutput;
 
-  readFromSerial();
-  updateMotorInput();
+  readFromSerial(); // read commands from serial
+  directMotorControl(); // replaces power set above with direct serial input
+  updateMotorInput(); // actuate motors
 
   delay(LOOP_TIME_DELAY_MS);
 }
