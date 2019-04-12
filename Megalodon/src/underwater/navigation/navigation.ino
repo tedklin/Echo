@@ -138,6 +138,11 @@ float m_verticalFrontLeftPower = 0;
 float m_verticalBackRightPower = 0;
 float m_verticalBackLeftPower = 0;
 
+float m_desiredYaw = 0;
+float m_desiredRoll = 0;
+float m_desiredPitch = 0;
+float m_desiredDepth = 0;
+
 float m_yawControlOutput = 0;
 float m_rollControlOutput = 0;
 float m_pitchControlOutput = 0;
@@ -152,9 +157,14 @@ float m_translationError = 0;
 
 #define INPUT_SIZE 30
 
-float inputArray[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+float directInputArray[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+
+// direct input //
 // hL:0.2&hR:0.2&vFL:0.2&vFR:0.2&vBL:0.2&vBR:0.2
 // hL:0&hR:0&vFL:0&vFR:0&vBL:0&vBR:0
+
+// autonomous input //
+// 
 
 void readFromSerial() {
   // Get next command from Serial (add 1 for final 0)
@@ -178,18 +188,26 @@ void readFromSerial() {
       float input = atof(separator);
 
       if (strcmp(commandType, "hL") == 0) {
-        inputArray[0] = input;
+        directInputArray[0] = input;
       } else if (strcmp(commandType, "hR") == 0) {
-        inputArray[1] = input;
+        directInputArray[1] = input;
       } else if (strcmp(commandType, "vFL") == 0) {
-        inputArray[2] = input;
+        directInputArray[2] = input;
       } else if (strcmp(commandType, "vFR") == 0) {
-        inputArray[3] = input;
+        directInputArray[3] = input;
       } else if (strcmp(commandType, "vBL") == 0) {
-        inputArray[4] = input;
+        directInputArray[4] = input;
       } else if (strcmp(commandType, "vBR") == 0) {
-        inputArray[5] = input;
-      }
+        directInputArray[5] = input;
+      } else if (strcmp(commandType, "yaw") == 0) {
+        m_desiredYaw = input;
+      } else if (strcmp(commandType, "pitch") == 0) {
+        m_desiredPitch = input;
+      } else if (strcmp(commandType, "roll") == 0) {
+        m_desiredRoll = input;
+      } else if (strcmp(commandType, "trans") == 0) {
+        m_translationOutput = input;
+      } 
     }
     // Find the next command in input string
     command = strtok(0, "&");
@@ -200,7 +218,7 @@ void readFromSerial() {
  * @param Servo motor 
  * @param float throttle (-1.0 to 1.0)
  */
-float calculateThrottle(float throttle) {
+float throttleToMicroseconds(float throttle) {
   if (throttle > 1.0) {
     throttle = 1.0;
   } else if (throttle < -1.0) {
@@ -214,44 +232,44 @@ float calculateThrottle(float throttle) {
  * Actuate motors
  */
 void updateMotorInput() {
-  setThrottle(m_horizontalLeftMotor, m_horizontalLeftPower);
-  setThrottle(m_horizontalRightMotor, m_horizontalRightPower);
-  setThrottle(m_verticalFrontLeftMotor, m_verticalFrontLeftPower);
-  setThrottle(m_verticalFrontRightMotor, m_verticalFrontRightPower);
-  setThrottle(m_verticalBackLeftMotor, m_verticalBackLeftPower);
-  setThrottle(m_verticalBackRightMotor, m_verticalBackRightPower);
+  m_horizontalLeftMotor.writeMicroseconds(throttleToMicroseconds(m_horizontalLeftPower));
+  m_horizontalRightMotor.writeMicroseconds(throttleToMicroseconds(m_horizontalRightPower));
+  m_verticalFrontLeftMotor.writeMicroseconds(throttleToMicroseconds(m_verticalFrontLeftPower));
+  m_verticalFrontRightMotor.writeMicroseconds(throttleToMicroseconds(m_verticalFrontRightPower));
+  m_verticalBackLeftMotor.writeMicroseconds(throttleToMicroseconds(m_verticalBackLeftPower));
+  m_verticalBackRightMotor.writeMicroseconds(throttleToMicroseconds(m_verticalBackRightPower));
 
 // // direct direct input stuff
-//  m_horizontalLeftMotor.writeMicroseconds(calculateThrottle(inputArray[0]));
-//  m_horizontalRightMotor.writeMicroseconds(calculateThrottle(inputArray[1]));
-//  m_verticalFrontLeftMotor.writeMicroseconds(calculateThrottle(inputArray[2]));
-//  m_verticalFrontRightMotor.writeMicroseconds(calculateThrottle(inputArray[3]));
-//  m_verticalBackLeftMotor.writeMicroseconds(calculateThrottle(inputArray[4]));
-//  m_verticalBackRightMotor.writeMicroseconds(calculateThrottle(inputArray[5]));
+//  m_horizontalLeftMotor.writeMicroseconds(throttleToMicroseconds(directInputArray[0]));
+//  m_horizontalRightMotor.writeMicroseconds(throttleToMicroseconds(directInputArray[1]));
+//  m_verticalFrontLeftMotor.writeMicroseconds(throttleToMicroseconds(directInputArray[2]));
+//  m_verticalFrontRightMotor.writeMicroseconds(throttleToMicroseconds(directInputArray[3]));
+//  m_verticalBackLeftMotor.writeMicroseconds(throttleToMicroseconds(directInputArray[4]));
+//  m_verticalBackRightMotor.writeMicroseconds(throttleToMicroseconds(directInputArray[5]));
 }
 
 /**
  * Direct motor control
  */
 void directMotorControl() {
-  m_horizontalLeftPower = calculateThrottle(inputArray[0]);
-  m_horizontalRightPower = calculateThrottle(inputArray[1]);
-  m_verticalFrontLeftPower = calculateThrottle(inputArray[2]);
-  m_verticalFrontRightPower = calculateThrottle(inputArray[3]);
-  m_verticalBackLeftPower = calculateThrottle(inputArray[4]);
-  m_verticalBackRightPower = calculateThrottle(inputArray[5]);
+  m_horizontalLeftPower = directInputArray[0];
+  m_horizontalRightPower = directInputArray[1];
+  m_verticalFrontLeftPower = directInputArray[2];
+  m_verticalFrontRightPower = directInputArray[3];
+  m_verticalBackLeftPower = directInputArray[4];
+  m_verticalBackRightPower = directInputArray[5];
 }
 
 /**
  * Stop motors
  */
 void stopAll() {
-//  m_horizontalRightMotor.writeMicroseconds(calculateThrottle(0));
-//  m_horizontalLeftMotor.writeMicroseconds(calculateThrottle(0));
-//  m_verticalFrontRightMotor.writeMicroseconds(calculateThrottle(0));
-//  m_verticalFrontLeftMotor.writeMicroseconds(calculateThrottle(0));
-//  m_verticalBackRightMotor.writeMicroseconds(calculateThrottle(0));
-//  m_verticalBackLeftMotor.writeMicroseconds(calculateThrottle(0));
+//  m_horizontalRightMotor.writeMicroseconds(throttleToMicroseconds(0));
+//  m_horizontalLeftMotor.writeMicroseconds(throttleToMicroseconds(0));
+//  m_verticalFrontRightMotor.writeMicroseconds(throttleToMicroseconds(0));
+//  m_verticalFrontLeftMotor.writeMicroseconds(throttleToMicroseconds(0));
+//  m_verticalBackRightMotor.writeMicroseconds(throttleToMicroseconds(0));
+//  m_verticalBackLeftMotor.writeMicroseconds(throttleToMicroseconds(0));
 
 //  m_horizontalLeftMotor.writeMicroseconds(1500);
 //  m_horizontalRightMotor.writeMicroseconds(1500);
@@ -260,12 +278,12 @@ void stopAll() {
 //  m_verticalBackLeftMotor.writeMicroseconds(1500);
 //  m_verticalBackRightMotor.writeMicroseconds(1500);
 
-  m_horizontalLeftPower = calculateThrottle(0);
-  m_horizontalRightPower = calculateThrottle(0);
-  m_verticalFrontLeftPower = calculateThrottle(0);
-  m_verticalFrontRightPower = calculateThrottle(0);
-  m_verticalBackLeftPower = calculateThrottle(0);
-  m_verticalBackRightPower = calculateThrottle(0);
+  m_horizontalLeftPower = 0;
+  m_horizontalRightPower = 0;
+  m_verticalFrontLeftPower = 0;
+  m_verticalFrontRightPower = 0;
+  m_verticalBackLeftPower = 0;
+  m_verticalBackRightPower = 0;
 }
 
 /**
@@ -352,18 +370,14 @@ void setup() {
 void loop() {
   updateIMU();
   updateBarometer();
-
-  float desiredYaw = 0;
-  float desiredRoll = 0;
-  float desiredPitch = 0;
-  float desiredDepth = 0;
+  
   m_translationOutput = 0;
   
-  if (isDepthReached(desiredDepth)) {
-    goToDepth(desiredDepth);
+  if (isDepthReached(m_desiredDepth)) {
+    goToDepth(m_desiredDepth);
     m_translationOutput = 0;
-  } else if (!isYawAligned(desiredYaw) && !isRollAligned(desiredRoll) && !isPitchAligned(desiredPitch)) {
-    rotate(desiredYaw, desiredRoll, desiredPitch);
+  } else if (!isYawAligned(m_desiredYaw) && !isRollAligned(m_desiredRoll) && !isPitchAligned(m_desiredPitch)) {
+    rotate(m_desiredYaw, m_desiredRoll, m_desiredPitch);
     m_translationOutput = 0;
   }
 
