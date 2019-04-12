@@ -166,7 +166,7 @@ float directInputArray[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 // autonomous input //
 // 
 
-void readFromSerial() {
+void receiveSerialInput() {
   // Get next command from Serial (add 1 for final 0)
   char input[INPUT_SIZE + 1];
   byte size = Serial.readBytes(input, INPUT_SIZE);
@@ -218,7 +218,61 @@ void readFromSerial() {
 
 /**
  * @param Servo motor 
+ * Update control loop output
+ * @param desiredYaw
+ * @param desiredRoll
+ * @param desiredPitch
+ */
+void rotate(float desiredYaw, float desiredRoll, float desiredPitch) {
+  m_pitchError = desiredPitch - m_measuredPitch;
+  m_rollError = desiredRoll - m_measuredRoll;
+  m_yawError = desiredYaw - m_measuredYaw;
+  
+  m_pitchControlOutput = kPitchP * m_pitchError;
+  m_rollControlOutput = kRollP * m_rollError;
+  m_yawControlOutput = kYawP * m_yawError;
+  if (!isPitchAligned(desiredPitch)) {
+    m_rollControlOutput = 0;
+    m_yawControlOutput = 0;
+  } else if (!isRollAligned(desiredRoll)) {
+    m_yawControlOutput = 0;
+  }
+}
+
+/**
+ * Go to depth
+ * @param desiredDepth
+ */
+void goToDepth(float desiredDepth) {
+  m_depthError = desiredDepth - m_measuredDepth;
+  
+  rotate(m_measuredYaw, 0, 0);
+  if (isPitchAligned(0) && isRollAligned(0)) {
+    m_depthControlOutput = kDepthP * m_depthError;
+  } else {
+    m_depthControlOutput = 0;
+  }
+}
+
+bool isYawAligned(float desiredYaw) {
+  return abs(m_measuredYaw - desiredYaw) < kYawThreshold;
+}
+
+bool isPitchAligned(float desiredPitch) {
+  return abs(m_measuredPitch - desiredPitch) < kPitchThreshold;
+}
+
+bool isRollAligned(float desiredRoll) {
+  return abs(m_measuredRoll - desiredRoll) < kRollThreshold;
+}
+
+bool isDepthReached(float desiredDepth) {
+  return abs(m_measuredDepth - desiredDepth) < kDepthThreshold;
+}
+
+/**
  * @param float throttle (-1.0 to 1.0)
+ * @return float input (microseconds to write to ESCs)
  */
 float throttleToMicroseconds(float throttle) {
   if (throttle > 1.0) {
@@ -233,7 +287,7 @@ float throttleToMicroseconds(float throttle) {
 /**
  * Actuate motors
  */
-void updateMotorInput() {
+void runMotors() {
   m_horizontalLeftMotor.writeMicroseconds(throttleToMicroseconds(m_horizontalLeftPower));
   m_horizontalRightMotor.writeMicroseconds(throttleToMicroseconds(m_horizontalRightPower));
   m_verticalFrontLeftMotor.writeMicroseconds(throttleToMicroseconds(m_verticalFrontLeftPower));
@@ -288,59 +342,6 @@ void stopAll() {
   m_verticalBackRightPower = 0;
 }
 
-/**
- * Update control loop output
- * @param desiredYaw
- * @param desiredRoll
- * @param desiredPitch
- */
-void rotate(float desiredYaw, float desiredRoll, float desiredPitch) {
-  m_pitchError = desiredPitch - m_measuredPitch;
-  m_rollError = desiredRoll - m_measuredRoll;
-  m_yawError = desiredYaw - m_measuredYaw;
-  
-  m_pitchControlOutput = kPitchP * m_pitchError;
-  m_rollControlOutput = kRollP * m_rollError;
-  m_yawControlOutput = kYawP * m_yawError;
-  if (!isPitchAligned(desiredPitch)) {
-    m_rollControlOutput = 0;
-    m_yawControlOutput = 0;
-  } else if (!isRollAligned(desiredRoll)) {
-    m_yawControlOutput = 0;
-  }
-}
-
-/**
- * Go to depth
- * @param desiredDepth
- */
-void goToDepth(float desiredDepth) {
-  m_depthError = desiredDepth - m_measuredDepth;
-  
-  rotate(m_measuredYaw, 0, 0);
-  if (isPitchAligned(0) && isRollAligned(0)) {
-    m_depthControlOutput = kDepthP * m_depthError;
-  } else {
-    m_depthControlOutput = 0;
-  }
-}
-
-bool isYawAligned(float desiredYaw) {
-  return abs(m_measuredYaw - desiredYaw) < kYawThreshold;
-}
-
-bool isPitchAligned(float desiredPitch) {
-  return abs(m_measuredPitch - desiredPitch) < kPitchThreshold;
-}
-
-bool isRollAligned(float desiredRoll) {
-  return abs(m_measuredRoll - desiredRoll) < kRollThreshold;
-}
-
-bool isDepthReached(float desiredDepth) {
-  return abs(m_measuredDepth - desiredDepth) < kDepthThreshold;
-}
-
 // ======================================================================================= //
 //                                                                 END OF MOVEMENT METHODS //
 // ======================================================================================= //
@@ -370,6 +371,8 @@ void setup() {
 }
 
 void loop() {
+  receiveSerialInput();
+  
   updateIMU();
   updateBarometer();
   
@@ -405,12 +408,19 @@ void loop() {
   Serial.println(m_verticalBackRightPower);
   Serial.println("");
 
-  Serial.print("Yaw: ");
+  Serial.print("Measured Yaw: ");
   Serial.println(m_measuredYaw);
-  Serial.print("Roll: " );
+  Serial.print("Measured Roll: " );
   Serial.println(m_measuredRoll);
-  Serial.print("Pitch: " );
+  Serial.print("Measured Pitch: " );
   Serial.println(m_measuredPitch);
+
+  Serial.print("Yaw Control Output: ");
+  Serial.println(m_yawControlOutput);
+  Serial.print("Roll Control Output: " );
+  Serial.println(m_rollControlOutput);
+  Serial.print("Pitch Control Output: " );
+  Serial.println(m_pitchControlOutput);
 
   Serial.print("Yaw Control Output: ");
   Serial.println(m_yawControlOutput);
@@ -420,9 +430,8 @@ void loop() {
   Serial.println(m_pitchControlOutput);
   Serial.println("-----------");
 
-//  readFromSerial(); // read commands from serial
 //  directMotorControl(); // replaces power set above with direct serial input
-//  updateMotorInput(); // actuate motors
+//  runMotors(); // actuate motors
 
   delay(LOOP_TIME_DELAY_MS);
 }
