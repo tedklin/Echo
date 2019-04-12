@@ -1,6 +1,6 @@
 #include <Servo.h>
 
-byte servoPin = 9;
+byte servoPin = 11;
 float throttle = 0;
 Servo motor1;
 
@@ -19,13 +19,16 @@ void setup() {
   Serial.begin(9600);
   
   motor1.attach(servoPin);
-  setThrottle(0);
-  delay(7000);
+//  setThrottle(0);
+
+  motor1.writeMicroseconds(1500);
+
+  delay(10000);
 }
 
 void loop() {
-  setThrottle(0.3);
+//  setThrottle(0.3);
 
-  
+  motor1.writeMicroseconds(1700);
 }
 
