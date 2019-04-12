@@ -221,6 +221,7 @@ void updateMotorInput() {
   setThrottle(m_verticalBackLeftMotor, m_verticalBackLeftPower);
   setThrottle(m_verticalBackRightMotor, m_verticalBackRightPower);
 
+// // direct direct input stuff
 //  m_horizontalLeftMotor.writeMicroseconds(calculateThrottle(inputArray[0]));
 //  m_horizontalRightMotor.writeMicroseconds(calculateThrottle(inputArray[1]));
 //  m_verticalFrontLeftMotor.writeMicroseconds(calculateThrottle(inputArray[2]));
@@ -252,12 +253,19 @@ void stopAll() {
 //  m_verticalBackRightMotor.writeMicroseconds(calculateThrottle(0));
 //  m_verticalBackLeftMotor.writeMicroseconds(calculateThrottle(0));
 
-  m_horizontalLeftMotor.writeMicroseconds(1500);
-  m_horizontalRightMotor.writeMicroseconds(1500);
-  m_verticalFrontLeftMotor.writeMicroseconds(1500);
-  m_verticalFrontRightMotor.writeMicroseconds(1500);
-  m_verticalBackLeftMotor.writeMicroseconds(1500);
-  m_verticalBackRightMotor.writeMicroseconds(1500);
+//  m_horizontalLeftMotor.writeMicroseconds(1500);
+//  m_horizontalRightMotor.writeMicroseconds(1500);
+//  m_verticalFrontLeftMotor.writeMicroseconds(1500);
+//  m_verticalFrontRightMotor.writeMicroseconds(1500);
+//  m_verticalBackLeftMotor.writeMicroseconds(1500);
+//  m_verticalBackRightMotor.writeMicroseconds(1500);
+
+  m_horizontalLeftPower = calculateThrottle(0);
+  m_horizontalRightPower = calculateThrottle(0);
+  m_verticalFrontLeftPower = calculateThrottle(0);
+  m_verticalFrontRightPower = calculateThrottle(0);
+  m_verticalBackLeftPower = calculateThrottle(0);
+  m_verticalBackRightPower = calculateThrottle(0);
 }
 
 /**
@@ -330,20 +338,20 @@ void setup() {
   delay(10000);
   Serial.println("MOTORS INSTANTIATED");
 
-//  Serial.println("IMU INSTANTIATING");
-//  instantiateIMU();
-//  delay(5000);
-//  Serial.println("IMU INSTANTIATED");
-//
-//  Serial.println("BAROMETER INSTANTIATING");
-//  instantiateBarometer();
-//  delay(5000);
-//  Serial.println("BAROMETER INSTANTIATED");
+  Serial.println("IMU INSTANTIATING");
+  instantiateIMU();
+  delay(5000);
+  Serial.println("IMU INSTANTIATED");
+
+  Serial.println("BAROMETER INSTANTIATING");
+  instantiateBarometer();
+  delay(5000);
+  Serial.println("BAROMETER INSTANTIATED");
 }
 
 void loop() {
-//  updateIMU();
-//  updateBarometer();
+  updateIMU();
+  updateBarometer();
 
   float desiredYaw = 0;
   float desiredRoll = 0;
@@ -366,9 +374,39 @@ void loop() {
   m_verticalBackLeftPower = -m_rollControlOutput - m_pitchControlOutput + m_depthControlOutput;
   m_verticalBackRightPower = -m_rollControlOutput + m_pitchControlOutput + m_depthControlOutput;
 
-  readFromSerial(); // read commands from serial
-  directMotorControl(); // replaces power set above with direct serial input
-  updateMotorInput(); // actuate motors
+  Serial.println("-----------");
+  Serial.print("hL : ");
+  Serial.println(m_horizontalLeftPower);
+  Serial.print("hR : ");
+  Serial.println(m_horizontalRightPower);
+  Serial.print("vFL : ");
+  Serial.println(m_verticalFrontLeftPower);
+  Serial.print("vFR : ");
+  Serial.println(m_verticalFrontRightPower);
+  Serial.print("vBL : ");
+  Serial.println(m_verticalBackLeftPower);
+  Serial.print("vBR : ");
+  Serial.println(m_verticalBackRightPower);
+  Serial.println("");
+
+  Serial.print("Yaw: ");
+  Serial.println(m_measuredYaw);
+  Serial.print("Roll: " );
+  Serial.println(m_measuredRoll);
+  Serial.print("Pitch: " );
+  Serial.println(m_measuredPitch);
+
+  Serial.print("Yaw Control Output: ");
+  Serial.println(m_yawControlOutput);
+  Serial.print("Roll Control Output: " );
+  Serial.println(m_rollControlOutput);
+  Serial.print("Pitch Control Output: " );
+  Serial.println(m_pitchControlOutput);
+  Serial.println("-----------");
+
+//  readFromSerial(); // read commands from serial
+//  directMotorControl(); // replaces power set above with direct serial input
+//  updateMotorInput(); // actuate motors
 
   delay(LOOP_TIME_DELAY_MS);
 }
