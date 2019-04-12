@@ -217,7 +217,6 @@ void receiveSerialInput() {
 }
 
 /**
- * @param Servo motor 
  * Update control loop output
  * @param desiredYaw
  * @param desiredRoll
@@ -380,10 +379,8 @@ void loop() {
   
   if (isDepthReached(m_desiredDepth)) {
     goToDepth(m_desiredDepth);
-    m_translationOutput = 0;
   } else if (!isYawAligned(m_desiredYaw) && !isRollAligned(m_desiredRoll) && !isPitchAligned(m_desiredPitch)) {
     rotate(m_desiredYaw, m_desiredRoll, m_desiredPitch);
-    m_translationOutput = 0;
   }
 
   m_horizontalLeftPower = -m_yawControlOutput + m_translationOutput;
@@ -408,30 +405,46 @@ void loop() {
   Serial.println(m_verticalBackRightPower);
   Serial.println("");
 
-  Serial.print("Measured Yaw: ");
+  Serial.print("Yaw Measured: ");
   Serial.println(m_measuredYaw);
-  Serial.print("Measured Roll: " );
+  Serial.print("Roll Measured: " );
   Serial.println(m_measuredRoll);
-  Serial.print("Measured Pitch: " );
+  Serial.print("Pitch Measured: " );
   Serial.println(m_measuredPitch);
+  Serial.print("Depth Measured: " );
+  Serial.println(m_measuredDepth);
 
+  Serial.print("Yaw Desired: ");
+  Serial.println(m_desiredYaw);
+  Serial.print("Roll Desired: " );
+  Serial.println(m_desiredRoll);
+  Serial.print("Pitch Desired: " );
+  Serial.println(m_desiredPitch);
+  Serial.print("Depth Desired: " );
+  Serial.println(m_desiredDepth);
+
+  Serial.print("Yaw Error: ");
+  Serial.println(m_yawError);
+  Serial.print("Roll Error: " );
+  Serial.println(m_rollError);
+  Serial.print("Pitch Error: " );
+  Serial.println(m_pitchError);
+  Serial.print("Depth Error: " );
+  Serial.println(m_depthError);
+  
   Serial.print("Yaw Control Output: ");
   Serial.println(m_yawControlOutput);
   Serial.print("Roll Control Output: " );
   Serial.println(m_rollControlOutput);
   Serial.print("Pitch Control Output: " );
   Serial.println(m_pitchControlOutput);
-
-  Serial.print("Yaw Control Output: ");
-  Serial.println(m_yawControlOutput);
-  Serial.print("Roll Control Output: " );
-  Serial.println(m_rollControlOutput);
-  Serial.print("Pitch Control Output: " );
-  Serial.println(m_pitchControlOutput);
+  Serial.print("Depth Control Output: " );
+  Serial.println(m_depthControlOutput);
   Serial.println("-----------");
 
-//  directMotorControl(); // replaces power set above with direct serial input
-//  runMotors(); // actuate motors
+//  directMotorControl(); // direct serial input to motors
+//  autonomousControl();  // autonomous update input to motors
+//  runMotors(); // actuate motors 
 
   delay(LOOP_TIME_DELAY_MS);
 }
