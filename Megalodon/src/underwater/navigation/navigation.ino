@@ -11,13 +11,13 @@
 
 #define LOOP_TIME_DELAY_MS (200)
 
-const float kYawP = 0;
+const float kYawP = 0.01;
 const float kYawI = 0;
 const float kYawD = 0;
-const float kPitchP = 0;
+const float kPitchP = 0.01;
 const float kPitchI = 0;
 const float kPitchD = 0;
-const float kRollP = 0;
+const float kRollP = 0.01;
 const float kRollI = 0;
 const float kRollD = 0;
 const float kDepthP = 0;
@@ -28,10 +28,10 @@ const float kTranslationP = 0;
 const float kTranslationI = 0;
 const float kTranslationD = 0;
 
-const float kYawThreshold = 5;
-const float kPitchThreshold = 5;
-const float kRollThreshold = 5;
-const float kDepthThreshold = 5;
+const float kYawThreshold = 3;
+const float kPitchThreshold = 3;
+const float kRollThreshold = 3;
+const float kDepthThreshold = 3;
 
 // ======================================================================================= //
 //                                                                        END OF CONSTANTS //
@@ -53,10 +53,10 @@ MS5837 m_barometer;
 
 void instantiateMotors() {
   m_horizontalLeftMotor.attach(6);
-  m_horizontalRightMotor.attach(5);
-  m_verticalFrontLeftMotor.attach(10);
+  m_horizontalRightMotor.attach(11);
+  m_verticalFrontLeftMotor.attach(5);
   m_verticalFrontRightMotor.attach(3);
-  m_verticalBackLeftMotor.attach(11);
+  m_verticalBackLeftMotor.attach(10);
   m_verticalBackRightMotor.attach(9);
 }
 
@@ -100,6 +100,12 @@ void updateIMU() {
   m_measuredYaw = euler.x();
   m_measuredRoll = euler.y();
   m_measuredPitch = euler.z();
+}
+
+void limitOrientationMeasurements() {
+  m_measuredYaw = fmod((360.0 - m_measuredYaw), 360.0);
+  m_measuredRoll = fmod((360.0 - m_measuredRoll), 360.0);
+  m_measuredPitch = fmod((360.0 - m_measuredPitch), 360.0);
 }
 
 void updateBarometer() {
@@ -162,6 +168,7 @@ float directInputArray[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 // direct input //
 // hL:0.2&hR:0.2&vFL:0.2&vFR:0.2&vBL:0.2&vBR:0.2
 // hL:0&hR:0&vFL:0&vFR:0&vBL:0&vBR:0
+// yaw:0&pitch:0&roll:0
 
 // autonomous input //
 // 
@@ -226,6 +233,13 @@ void rotate(float desiredYaw, float desiredRoll, float desiredPitch) {
   m_pitchError = desiredPitch - m_measuredPitch;
   m_rollError = desiredRoll - m_measuredRoll;
   m_yawError = desiredYaw - m_measuredYaw;
+
+  m_pitchError = (m_pitchError > 180) ? m_pitchError - 360 : m_pitchError;
+  m_pitchError = (m_pitchError < -180) ? m_pitchError + 360 : m_pitchError;
+  m_rollError = (m_rollError > 180) ? m_rollError - 360 : m_rollError;
+  m_rollError = (m_rollError < -180) ? m_rollError + 360 : m_rollError;
+  m_yawError = (m_yawError > 180) ? m_yawError - 360 : m_yawError;
+  m_yawError = (m_yawError < -180) ? m_yawError + 360 : m_yawError;
   
   m_pitchControlOutput = kPitchP * m_pitchError;
   m_rollControlOutput = kRollP * m_rollError;
@@ -256,7 +270,7 @@ void goToDepth(float desiredDepth) {
  * Translate to based on error input
  */
 void translate() {
-  if (isYawAligned(m_desiredYaw) && isPitchAligned(m_desiredPitch) && isRollAligned(m_desiredRoll) && isDepthReached(m_desiredDepth) {
+  if (isYawAligned(m_desiredYaw) && isPitchAligned(m_desiredPitch) && isRollAligned(m_desiredRoll) && isDepthReached(m_desiredDepth)) {
     m_translationControlOutput = kTranslationP * m_translationError;
   } else {
     m_translationControlOutput = 0;
@@ -284,10 +298,10 @@ bool isDepthReached(float desiredDepth) {
  * @return float input (microseconds to write to ESCs)
  */
 float throttleToMicroseconds(float throttle) {
-  if (throttle > 1.0) {
-    throttle = 1.0;
-  } else if (throttle < -1.0) {
-    throttle = -1.0;
+  if (throttle > 0.5) {
+    throttle = 0.5;
+  } else if (throttle < -0.5) {
+    throttle = -0.5;
   }
   float input = throttle * 400 + 1500;
   return input;
@@ -384,39 +398,42 @@ void setup() {
   instantiateIMU();
   delay(5000);
   Serial.println("IMU INSTANTIATED");
-
-  Serial.println("BAROMETER INSTANTIATING");
-  instantiateBarometer();
-  delay(5000);
-  Serial.println("BAROMETER INSTANTIATED");
+//
+//  Serial.println("BAROMETER INSTANTIATING");
+//  instantiateBarometer();
+//  delay(5000);
+//  Serial.println("BAROMETER INSTANTIATED");
 }
 
 void loop() {
   receiveSerialInput();
   
   updateIMU();
-  updateBarometer();
+  limitOrientationMeasurements();
+//  updateBarometer();
   
-  if (!isDepthReached(m_desiredDepth)) {
-    goToDepth(m_desiredDepth);
-  } else if (!isYawAligned(m_desiredYaw) && !isRollAligned(m_desiredRoll) && !isPitchAligned(m_desiredPitch)) {
-    rotate(m_desiredYaw, m_desiredRoll, m_desiredPitch);
-  }
+//  if (!isDepthReached(m_desiredDepth)) {
+//    goToDepth(m_desiredDepth);
+//  } else if (!isYawAligned(m_desiredYaw) && !isRollAligned(m_desiredRoll) && !isPitchAligned(m_desiredPitch)) {
+//    rotate(m_desiredYaw, m_desiredRoll, m_desiredPitch);
+//  }
+
+  rotate(m_desiredYaw, m_desiredRoll, m_desiredPitch);
 
   Serial.println("-----------");
-  Serial.print("hL : ");
-  Serial.println(m_horizontalLeftPower);
-  Serial.print("hR : ");
-  Serial.println(m_horizontalRightPower);
-  Serial.print("vFL : ");
-  Serial.println(m_verticalFrontLeftPower);
-  Serial.print("vFR : ");
-  Serial.println(m_verticalFrontRightPower);
-  Serial.print("vBL : ");
-  Serial.println(m_verticalBackLeftPower);
-  Serial.print("vBR : ");
-  Serial.println(m_verticalBackRightPower);
-  Serial.println("");
+//  Serial.print("hL : ");
+//  Serial.println(m_horizontalLeftPower);
+//  Serial.print("hR : ");
+//  Serial.println(m_horizontalRightPower);
+//  Serial.print("vFL : ");
+//  Serial.println(m_verticalFrontLeftPower);
+//  Serial.print("vFR : ");
+//  Serial.println(m_verticalFrontRightPower);
+//  Serial.print("vBL : ");
+//  Serial.println(m_verticalBackLeftPower);
+//  Serial.print("vBR : ");
+//  Serial.println(m_verticalBackRightPower);
+//  Serial.println("");
 
   Serial.print("Yaw Measured: ");
   Serial.println(m_measuredYaw);
@@ -455,9 +472,11 @@ void loop() {
   Serial.println(m_depthControlOutput);
   Serial.println("-----------");
 
+  
+
 //  directMotorControl(); // direct serial input to motors
-//  autonomousControl();  // autonomous update input to motors
-//  runMotors(); // actuate motors 
+  autonomousControl();  // autonomous update input to motors
+  runMotors(); // actuate motors 
 
   delay(LOOP_TIME_DELAY_MS);
 }

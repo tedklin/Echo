@@ -1,6 +1,6 @@
 #include <Servo.h>
 
-byte servoPin = 11;
+byte servoPin = 9;
 float throttle = 0;
 Servo motor1;
 
