@@ -443,11 +443,11 @@ void stopAll() {
 // ======================================================================================= //
 
 double calculateInitialYaw() {
-  return atan2(m_transXFromVision1, m_transZFromVision1);
+  return atan2(m_transXFromVisionF, m_transZFromVisionF);
 }
 
 double calculateInitialDepth() {
-  return m_transYFromVision1;
+  return m_transYFromVisionF;
 }
 
 // ======================================================================================= //
