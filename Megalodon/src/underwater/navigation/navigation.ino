@@ -397,41 +397,7 @@ void stopAll() {
 //                                                                      START OF MAIN CODE //
 // ======================================================================================= //
 
-void setup() {
-  Serial.begin(9600);
-
-  Serial.println("MOTORS INSTANTIATING");
-  instantiateMotors();
-  stopAll();
-  delay(10000);
-  Serial.println("MOTORS INSTANTIATED");
-
-  Serial.println("IMU INSTANTIATING");
-  instantiateIMU();
-  delay(5000);
-  Serial.println("IMU INSTANTIATED");
-//
-//  Serial.println("BAROMETER INSTANTIATING");
-//  instantiateBarometer();
-//  delay(5000);
-//  Serial.println("BAROMETER INSTANTIATED");
-}
-
-void loop() {
-  receiveSerialInput();
-  
-  updateIMU();
-  limitOrientationMeasurements();
-//  updateBarometer();
-  
-//  if (!isDepthReached(m_desiredDepth)) {
-//    goToDepth(m_desiredDepth);
-//  } else if (!isYawAligned(m_desiredYaw) && !isRollAligned(m_desiredRoll) && !isPitchAligned(m_desiredPitch)) {
-//    rotate(m_desiredYaw, m_desiredRoll, m_desiredPitch);
-//  }
-
-  rotate(m_desiredYaw, m_desiredRoll, m_desiredPitch);
-
+void reportStates() {
   Serial.println("-----------");
 //  Serial.print("hL : ");
 //  Serial.println(m_horizontalLeftPower);
@@ -483,8 +449,44 @@ void loop() {
   Serial.print("Depth Control Output: " );
   Serial.println(m_depthControlOutput);
   Serial.println("-----------");
+}
 
+void setup() {
+  Serial.begin(9600);
+
+  Serial.println("MOTORS INSTANTIATING");
+  instantiateMotors();
+  stopAll();
+  delay(10000);
+  Serial.println("MOTORS INSTANTIATED");
+
+  Serial.println("IMU INSTANTIATING");
+  instantiateIMU();
+  delay(5000);
+  Serial.println("IMU INSTANTIATED");
+//
+//  Serial.println("BAROMETER INSTANTIATING");
+//  instantiateBarometer();
+//  delay(5000);
+//  Serial.println("BAROMETER INSTANTIATED");
+}
+
+void loop() {
+  receiveSerialInput();
   
+  updateIMU();
+  limitOrientationMeasurements();
+//  updateBarometer();
+  
+//  if (!isDepthReached(m_desiredDepth)) {
+//    goToDepth(m_desiredDepth);
+//  } else if (!isYawAligned(m_desiredYaw) && !isRollAligned(m_desiredRoll) && !isPitchAligned(m_desiredPitch)) {
+//    rotate(m_desiredYaw, m_desiredRoll, m_desiredPitch);
+//  }
+
+  rotate(m_desiredYaw, m_desiredRoll, m_desiredPitch);
+
+  reportStates();
 
 //  directMotorControl(); // direct serial input to motors
   autonomousControl();  // autonomous update input to motors
