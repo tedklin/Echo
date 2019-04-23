@@ -216,6 +216,18 @@ void receiveSerialInput() {
         m_desiredDepth = input;
       } else if (strcmp(commandType, "trans") == 0) {
         m_translationError = input;
+      } else if (strcmp(commandType, "visYaw") == 0) {
+        m_translationError = input;
+      } else if (strcmp(commandType, "visRoll") == 0) {
+        m_translationError = input;
+      } else if (strcmp(commandType, "visPitch") == 0) {
+        m_translationError = input;
+      } else if (strcmp(commandType, "visTransX") == 0) {
+        m_translationError = input;
+      } else if (strcmp(commandType, "visTransY") == 0) {
+        m_translationError = input;
+      } else if (strcmp(commandType, "visTransZ") == 0) {
+        m_translationError = input;
       } 
     }
     // Find the next command in input string
