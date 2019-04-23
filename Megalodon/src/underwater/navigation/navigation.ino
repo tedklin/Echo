@@ -161,6 +161,13 @@ float m_pitchError = 0;
 float m_depthError = 0;
 float m_translationError = 0;
 
+float m_yawFromVision = 0;
+float m_pitchFromVision = 0;
+float m_rollFromVision = 0;
+float m_transXFromVision = 0;
+float m_transYFromVision = 0;
+float m_transZFromVision = 0;
+
 #define INPUT_SIZE 30
 
 float directInputArray[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
@@ -216,18 +223,18 @@ void receiveSerialInput() {
         m_desiredDepth = input;
       } else if (strcmp(commandType, "trans") == 0) {
         m_translationError = input;
-      } else if (strcmp(commandType, "visYaw") == 0) {
-        m_translationError = input;
-      } else if (strcmp(commandType, "visRoll") == 0) {
-        m_translationError = input;
-      } else if (strcmp(commandType, "visPitch") == 0) {
-        m_translationError = input;
-      } else if (strcmp(commandType, "visTransX") == 0) {
-        m_translationError = input;
-      } else if (strcmp(commandType, "visTransY") == 0) {
-        m_translationError = input;
-      } else if (strcmp(commandType, "visTransZ") == 0) {
-        m_translationError = input;
+      } else if (strcmp(commandType, "visYawB") == 0) {
+        m_yawFromVision = input;
+      } else if (strcmp(commandType, "visRollB") == 0) {
+        m_rollFromVision = input;
+      } else if (strcmp(commandType, "visPitchB") == 0) {
+        m_pitchFromVision = input;
+      } else if (strcmp(commandType, "visTransXB") == 0) {
+        m_transXFromVision = input;
+      } else if (strcmp(commandType, "visTransYB") == 0) {
+        m_transYFromVision = input;
+      } else if (strcmp(commandType, "visTransZB") == 0) {
+        m_transZFromVision = input;
       } 
     }
     // Find the next command in input string
@@ -393,6 +400,18 @@ void stopAll() {
 //                                                                 END OF MOVEMENT METHODS //
 // ======================================================================================= //
 //                                                                                         //
+// ======================================================================================= //
+//                                                                   START OF AUTO METHODS //
+// ======================================================================================= //
+
+double calculateInitialYaw() {
+  return atan2(m_transXFromVision, m_transZFromVision);
+}
+
+double calculateInitialDepth() {
+  return m_transYFromVision;
+}
+
 // ======================================================================================= //
 //                                                                      START OF MAIN CODE //
 // ======================================================================================= //
