@@ -161,12 +161,26 @@ float m_pitchError = 0;
 float m_depthError = 0;
 float m_translationError = 0;
 
-float m_yawFromVision = 0;
-float m_pitchFromVision = 0;
-float m_rollFromVision = 0;
-float m_transXFromVision = 0;
-float m_transYFromVision = 0;
-float m_transZFromVision = 0;
+float m_yawFromVisionB = 0;
+float m_pitchFromVisionB = 0;
+float m_rollFromVisionB = 0;
+float m_transXFromVisionB = 0;
+float m_transYFromVisionB = 0;
+float m_transZFromVisionB = 0;
+
+float m_yawFromVisionF = 0;
+float m_pitchFromVisionF = 0;
+float m_rollFromVisionF = 0;
+float m_transXFromVisionF = 0;
+float m_transYFromVisionF = 0;
+float m_transZFromVisionF = 0;
+
+float m_yawFromVisionR = 0;
+float m_pitchFromVisionR = 0;
+float m_rollFromVisionR = 0;
+float m_transXFromVisionR = 0;
+float m_transYFromVisionR = 0;
+float m_transZFromVisionR = 0;
 
 #define INPUT_SIZE 30
 
@@ -224,17 +238,41 @@ void receiveSerialInput() {
       } else if (strcmp(commandType, "trans") == 0) {
         m_translationError = input;
       } else if (strcmp(commandType, "visYawB") == 0) {
-        m_yawFromVision = input;
+        m_yawFromVisionB = input;
       } else if (strcmp(commandType, "visRollB") == 0) {
-        m_rollFromVision = input;
+        m_rollFromVisionB = input;
       } else if (strcmp(commandType, "visPitchB") == 0) {
-        m_pitchFromVision = input;
+        m_pitchFromVisionB = input;
       } else if (strcmp(commandType, "visTransXB") == 0) {
-        m_transXFromVision = input;
+        m_transXFromVisionB = input;
       } else if (strcmp(commandType, "visTransYB") == 0) {
-        m_transYFromVision = input;
+        m_transYFromVisionB = input;
       } else if (strcmp(commandType, "visTransZB") == 0) {
-        m_transZFromVision = input;
+        m_transZFromVisionB = input;
+      } else if (strcmp(commandType, "visYawF") == 0) {
+        m_yawFromVisionF = input;
+      } else if (strcmp(commandType, "visRollF") == 0) {
+        m_rollFromVisionF = input;
+      } else if (strcmp(commandType, "visPitchF") == 0) {
+        m_pitchFromVisionF = input;
+      } else if (strcmp(commandType, "visTransXF") == 0) {
+        m_transXFromVisionF = input;
+      } else if (strcmp(commandType, "visTransYF") == 0) {
+        m_transYFromVisionF = input;
+      } else if (strcmp(commandType, "visTransZF") == 0) {
+        m_transZFromVisionF = input;
+      } else if (strcmp(commandType, "visYawR") == 0) {
+        m_yawFromVisionR = input;
+      } else if (strcmp(commandType, "visRollR") == 0) {
+        m_rollFromVisionR = input;
+      } else if (strcmp(commandType, "visPitchR") == 0) {
+        m_pitchFromVisionR = input;
+      } else if (strcmp(commandType, "visTransXR") == 0) {
+        m_transXFromVisionR = input;
+      } else if (strcmp(commandType, "visTransYR") == 0) {
+        m_transYFromVisionR = input;
+      } else if (strcmp(commandType, "visTransZR") == 0) {
+        m_transZFromVisionR = input;
       } 
     }
     // Find the next command in input string
