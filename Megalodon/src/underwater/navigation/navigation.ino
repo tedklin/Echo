@@ -11,13 +11,13 @@
 
 #define LOOP_TIME_DELAY_MS (200)
 
-const float kYawP = 0.01;
+const float kYawP = 0.001;
 const float kYawI = 0;
 const float kYawD = 0;
-const float kPitchP = 0.01;
+const float kPitchP = 0.005;
 const float kPitchI = 0;
 const float kPitchD = 0;
-const float kRollP = 0.01;
+const float kRollP = 0.005;
 const float kRollI = 0;
 const float kRollD = 0;
 const float kDepthP = 0;
@@ -28,10 +28,10 @@ const float kTranslationP = 0;
 const float kTranslationI = 0;
 const float kTranslationD = 0;
 
-const float kYawThreshold = 3;
-const float kPitchThreshold = 3;
-const float kRollThreshold = 3;
-const float kDepthThreshold = 3;
+const float kYawThreshold = 20;
+const float kPitchThreshold = 20;
+const float kRollThreshold = 20;
+const float kDepthThreshold = 5;
 
 // ======================================================================================= //
 //                                                                        END OF CONSTANTS //
@@ -258,15 +258,24 @@ void translate() {
 }
 
 bool isYawAligned(float desiredYaw) {
-  return abs(m_measuredYaw - desiredYaw) < kYawThreshold;
+  double error = m_measuredYaw - desiredYaw;
+  error = (error > 180) ? error - 360 : error;
+  error = (error < -180) ? error + 360 : error;
+  return abs(error) < kYawThreshold;
 }
 
 bool isPitchAligned(float desiredPitch) {
-  return abs(m_measuredPitch - desiredPitch) < kPitchThreshold;
+  double error = m_measuredPitch - desiredPitch;
+  error = (error > 180) ? error - 360 : error;
+  error = (error < -180) ? error + 360 : error;
+  return abs(error) < kPitchThreshold;
 }
 
 bool isRollAligned(float desiredRoll) {
-  return abs(m_measuredRoll - desiredRoll) < kRollThreshold;
+  double error = m_measuredRoll - desiredRoll;
+  error = (error > 180) ? error - 360 : error;
+  error = (error < -180) ? error + 360 : error;
+  return abs(error) < kRollThreshold;
 }
 
 bool isDepthReached(float desiredDepth) {
@@ -335,6 +344,8 @@ void stopAll() {
   m_verticalBackRightPower = 0;
 }
 
+int state = 0;
+
 // ======================================================================================= //
 //                                                                 END OF MOVEMENT METHODS //
 // ======================================================================================= //
@@ -368,7 +379,7 @@ double calculateInitialDepth() {
 
 #define INPUT_SIZE 30
 
-void receiveSerialInput() {
+void receiveSerial() {
   // Get next command from Serial (add 1 for final 0)
   char input[INPUT_SIZE + 1];
   byte size = Serial.readBytes(input, INPUT_SIZE);
@@ -461,58 +472,84 @@ void receiveSerialInput() {
   }
 }
 
+void sendSerial() {
+  Serial.print(3);
+  Serial.print("#");
+  Serial.print(4);
+  Serial.print("#");
+  Serial.print(5);
+  Serial.print("#");
+  Serial.println(6);
+}
+
 void displayStatesToSerial() {
+//  Serial.println("-----------");
+//  Serial.print("hL : ");
+//  Serial.println(m_horizontalLeftPower);
+//  Serial.print("hR : ");
+//  Serial.println(m_horizontalRightPower);
+//  Serial.print("vFL : ");
+//  Serial.println(m_verticalFrontLeftPower);
+//  Serial.print("vFR : ");
+//  Serial.println(m_verticalFrontRightPower);
+//  Serial.print("vBL : ");
+//  Serial.println(m_verticalBackLeftPower);
+//  Serial.print("vBR : ");
+//  Serial.println(m_verticalBackRightPower);
+//  Serial.println("");
+//
+//  Serial.print("Yaw Measured: ");
+//  Serial.println(m_measuredYaw);
+//  Serial.print("Roll Measured: " );
+//  Serial.println(m_measuredRoll);
+//  Serial.print("Pitch Measured: " );
+//  Serial.println(m_measuredPitch);
+//  Serial.print("Depth Measured: " );
+//  Serial.println(m_measuredDepth);
+//
+//  Serial.print("Yaw Desired: ");
+//  Serial.println(m_desiredYaw);
+//  Serial.print("Roll Desired: " );
+//  Serial.println(m_desiredRoll);
+//  Serial.print("Pitch Desired: " );
+//  Serial.println(m_desiredPitch);
+//  Serial.print("Depth Desired: " );
+//  Serial.println(m_desiredDepth);
+//
+//  Serial.print("Yaw Error: ");
+//  Serial.println(m_yawError);
+//  Serial.print("Roll Error: " );
+//  Serial.println(m_rollError);
+//  Serial.print("Pitch Error: " );
+//  Serial.println(m_pitchError);
+//  Serial.print("Depth Error: " );
+//  Serial.println(m_depthError);
+//  
+//  Serial.print("Yaw Control Output: ");
+//  Serial.println(m_yawControlOutput);
+//  Serial.print("Roll Control Output: " );
+//  Serial.println(m_rollControlOutput);
+//  Serial.print("Pitch Control Output: " );
+//  Serial.println(m_pitchControlOutput);
+//  Serial.print("Depth Control Output: " );
+//  Serial.println(m_depthControlOutput);
+//  Serial.println("-----------");
+}
+
+void simulate() {
   Serial.println("-----------");
-  Serial.print("hL : ");
-  Serial.println(m_horizontalLeftPower);
-  Serial.print("hR : ");
-  Serial.println(m_horizontalRightPower);
-  Serial.print("vFL : ");
-  Serial.println(m_verticalFrontLeftPower);
-  Serial.print("vFR : ");
-  Serial.println(m_verticalFrontRightPower);
-  Serial.print("vBL : ");
-  Serial.println(m_verticalBackLeftPower);
-  Serial.print("vBR : ");
-  Serial.println(m_verticalBackRightPower);
-  Serial.println("");
-
-  Serial.print("Yaw Measured: ");
-  Serial.println(m_measuredYaw);
-  Serial.print("Roll Measured: " );
-  Serial.println(m_measuredRoll);
-  Serial.print("Pitch Measured: " );
-  Serial.println(m_measuredPitch);
-  Serial.print("Depth Measured: " );
-  Serial.println(m_measuredDepth);
-
-  Serial.print("Yaw Desired: ");
-  Serial.println(m_desiredYaw);
-  Serial.print("Roll Desired: " );
-  Serial.println(m_desiredRoll);
-  Serial.print("Pitch Desired: " );
-  Serial.println(m_desiredPitch);
-  Serial.print("Depth Desired: " );
-  Serial.println(m_desiredDepth);
-
-  Serial.print("Yaw Error: ");
-  Serial.println(m_yawError);
-  Serial.print("Roll Error: " );
-  Serial.println(m_rollError);
-  Serial.print("Pitch Error: " );
-  Serial.println(m_pitchError);
-  Serial.print("Depth Error: " );
-  Serial.println(m_depthError);
-  
-  Serial.print("Yaw Control Output: ");
-  Serial.println(m_yawControlOutput);
-  Serial.print("Roll Control Output: " );
-  Serial.println(m_rollControlOutput);
-  Serial.print("Pitch Control Output: " );
-  Serial.println(m_pitchControlOutput);
-  Serial.print("Depth Control Output: " );
-  Serial.println(m_depthControlOutput);
-  Serial.println("-----------");
+  Serial.print("Bottom Camera Yaw: ");
+  Serial.println(m_yawFromVisionB);
+  Serial.print("Bottom Camera Roll: ");
+  Serial.println(m_rollFromVisionB);
+  Serial.print("Bottom Camera Pitch: ");
+  Serial.println(m_pitchFromVisionB);
+  Serial.print("Bottom Camera X Translation: ");
+  Serial.println(m_transXFromVisionB);
+  Serial.print("Bottom Camera Y Translation: ");
+  Serial.println(m_transYFromVisionB);
+  Serial.print("Bottom Camera Z Translation: ");
+  Serial.println(m_transZFromVisionB);
 }
 
 // ======================================================================================= //
@@ -527,26 +564,30 @@ void setup() {
   Serial.begin(9600);
 
   instantiateMotors();
-//  instantiateIMU();
+  instantiateIMU();
 //  instantiateBarometer();
 }
 
 void loop() {
-  receiveSerialInput();
+//  receiveSerial();
+//  simulate();
+
+  updateStateEstimation();
+  displayStatesToSerial();
   
 //  if (!isDepthReached(m_desiredDepth)) {
 //    goToDepth(m_desiredDepth);
 //  } else if (!isYawAligned(m_desiredYaw) && !isRollAligned(m_desiredRoll) && !isPitchAligned(m_desiredPitch)) {
-//    rotate(m_desiredYaw, m_desiredRoll, m_desiredPitch);
+//    rotate(s);
 //  }
-
-  updateStateEstimation();
 
   rotate();
 
-  directMotorControl(); // direct serial input to motors
-//  autonomousControl();  // autonomous update input to motors
-  runMotors(); // actuate motors 
+//  directMotorControl(); // direct serial input to motors
+  autonomousControl();  // autonomous update input to motors
+  runMotors(); // actuate motors
+
+//  sendSerial();
 
   delay(LOOP_TIME_DELAY_MS);
 }
