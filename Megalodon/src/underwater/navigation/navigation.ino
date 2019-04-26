@@ -52,24 +52,38 @@ Adafruit_BNO055 m_imu;
 MS5837 m_barometer;
 
 void instantiateMotors() {
+  Serial.println("MOTORS INSTANTIATING");
+  
   m_horizontalLeftMotor.attach(6);
   m_horizontalRightMotor.attach(11);
   m_verticalFrontLeftMotor.attach(5);
   m_verticalFrontRightMotor.attach(3);
   m_verticalBackLeftMotor.attach(10);
   m_verticalBackRightMotor.attach(9);
+  
+  stopAll();
+  delay(10000);
+  
+  Serial.println("MOTORS INSTANTIATED");
 }
 
 void instantiateIMU() {
+  Serial.println("IMU INSTANTIATING");
+  
   m_imu = Adafruit_BNO055();
   while(!m_imu.begin())
   {
     Serial.println("IMU INIT FAILED");
     delay(5000);
   }
+  delay(5000);
+  
+  Serial.println("IMU INSTANTIATED");
 }
 
 void instantiateBarometer() {
+  Serial.println("BAROMETER INSTANTIATING");
+  
   Wire.begin();
   while (!m_barometer.init()) {
     Serial.println("BAROMETER INIT FAILED!");
@@ -77,6 +91,9 @@ void instantiateBarometer() {
   }
   m_barometer.setModel(MS5837::MS5837_30BA);
   m_barometer.setFluidDensity(997); // kg/m^3 (freshwater, 1029 for seawater)
+  delay(5000);
+  
+  Serial.println("BAROMETER INSTANTIATED");
 }
 
 // ======================================================================================= //
@@ -181,8 +198,6 @@ float m_rollFromVisionR = 0;
 float m_transXFromVisionR = 0;
 float m_transYFromVisionR = 0;
 float m_transZFromVisionR = 0;
-
-#define INPUT_SIZE 30
 
 float directInputArray[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
@@ -341,9 +356,11 @@ double calculateInitialDepth() {
 // direct input //
 // hL:0.2&hR:0.2&vFL:0.2&vFR:0.2&vBL:0.2&vBR:0.2
 // hL:0&hR:0&vFL:0&vFR:0&vBL:0&vBR:0
-// yaw:0&pitch:0&roll:0
+// cmdYaw:0&cmdPitch:0&cmdRoll:0
 
 // autonomous input //
+
+#define INPUT_SIZE 30
 
 void receiveSerialInput() {
   // Get next command from Serial (add 1 for final 0)
@@ -438,14 +455,6 @@ void receiveSerialInput() {
   }
 }
 
-// ======================================================================================= //
-//                                                                 END OF MOVEMENT METHODS //
-// ======================================================================================= //
-//                                                                                         //
-// ======================================================================================= //
-//                                                                      START OF MAIN CODE //
-// ======================================================================================= //
-
 void displayStatesToSerial() {
   Serial.println("-----------");
   Serial.print("hL : ");
@@ -500,24 +509,20 @@ void displayStatesToSerial() {
   Serial.println("-----------");
 }
 
+// ======================================================================================= //
+//                                                                 END OF MOVEMENT METHODS //
+// ======================================================================================= //
+//                                                                                         //
+// ======================================================================================= //
+//                                                                      START OF MAIN CODE //
+// ======================================================================================= //
+
 void setup() {
   Serial.begin(9600);
 
-  Serial.println("MOTORS INSTANTIATING");
   instantiateMotors();
-  stopAll();
-  delay(10000);
-  Serial.println("MOTORS INSTANTIATED");
-//
-//  Serial.println("IMU INSTANTIATING");
 //  instantiateIMU();
-//  delay(5000);
-//  Serial.println("IMU INSTANTIATED");
-//
-//  Serial.println("BAROMETER INSTANTIATING");
 //  instantiateBarometer();
-//  delay(5000);
-//  Serial.println("BAROMETER INSTANTIATED");
 }
 
 void loop() {
