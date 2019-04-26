@@ -132,6 +132,12 @@ void updateBarometer() {
   m_measuredPressure = m_barometer.pressure();
 }
 
+void updateStateEstimation() {
+  updateIMU();
+  limitOrientationMeasurements();
+  updateBarometer();
+}
+
 void displaySensorStatus() {
   Serial.println("Calibration status values: 0=uncalibrated, 3=fully calibrated");
   uint8_t system, gyro, accel, mag = 0;
@@ -528,15 +534,13 @@ void setup() {
 void loop() {
   receiveSerialInput();
   
-//  updateIMU();
-  limitOrientationMeasurements();
-//  updateBarometer();
-  
 //  if (!isDepthReached(m_desiredDepth)) {
 //    goToDepth(m_desiredDepth);
 //  } else if (!isYawAligned(m_desiredYaw) && !isRollAligned(m_desiredRoll) && !isPitchAligned(m_desiredPitch)) {
 //    rotate(m_desiredYaw, m_desiredRoll, m_desiredPitch);
 //  }
+
+  updateStateEstimation();
 
   rotate();
 
