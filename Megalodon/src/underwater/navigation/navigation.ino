@@ -186,110 +186,13 @@ float m_transZFromVisionR = 0;
 
 float directInputArray[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
-// direct input //
-// hL:0.2&hR:0.2&vFL:0.2&vFR:0.2&vBL:0.2&vBR:0.2
-// hL:0&hR:0&vFL:0&vFR:0&vBL:0&vBR:0
-// yaw:0&pitch:0&roll:0
-
-// autonomous input //
-// 
-
-void receiveSerialInput() {
-  // Get next command from Serial (add 1 for final 0)
-  char input[INPUT_SIZE + 1];
-  byte size = Serial.readBytes(input, INPUT_SIZE);
-  // Add the final 0 to end the C string
-  input[size] = 0;
-
-  // Read each command pair
-  int index = 0;
-  char* command = strtok(input, "&");
-  while (command != 0) {
-    // Split the command in two values
-    char* separator = strchr(command, ':');
-    if (separator != 0)
-    {
-      // Actually split the string in 2: replace ':' with 0
-      *separator = 0;
-      const char* commandType = command;
-      ++separator;
-      float input = atof(separator);
-
-      if (strcmp(commandType, "hL") == 0) {
-        directInputArray[0] = input;
-      } else if (strcmp(commandType, "hR") == 0) {
-        directInputArray[1] = input;
-      } else if (strcmp(commandType, "vFL") == 0) {
-        directInputArray[2] = input;
-      } else if (strcmp(commandType, "vFR") == 0) {
-        directInputArray[3] = input;
-      } else if (strcmp(commandType, "vBL") == 0) {
-        directInputArray[4] = input;
-      } else if (strcmp(commandType, "vBR") == 0) {
-        directInputArray[5] = input;
-      } else if (strcmp(commandType, "yaw") == 0) {
-        m_desiredYaw = input;
-      } else if (strcmp(commandType, "pitch") == 0) {
-        m_desiredPitch = input;
-      } else if (strcmp(commandType, "roll") == 0) {
-        m_desiredRoll = input;
-      } else if (strcmp(commandType, "depth") == 0) {
-        m_desiredDepth = input;
-      } else if (strcmp(commandType, "trans") == 0) {
-        m_translationError = input;
-      } else if (strcmp(commandType, "visYawB") == 0) {
-        m_yawFromVisionB = input;
-      } else if (strcmp(commandType, "visRollB") == 0) {
-        m_rollFromVisionB = input;
-      } else if (strcmp(commandType, "visPitchB") == 0) {
-        m_pitchFromVisionB = input;
-      } else if (strcmp(commandType, "visTransXB") == 0) {
-        m_transXFromVisionB = input;
-      } else if (strcmp(commandType, "visTransYB") == 0) {
-        m_transYFromVisionB = input;
-      } else if (strcmp(commandType, "visTransZB") == 0) {
-        m_transZFromVisionB = input;
-      } else if (strcmp(commandType, "visYawF") == 0) {
-        m_yawFromVisionF = input;
-      } else if (strcmp(commandType, "visRollF") == 0) {
-        m_rollFromVisionF = input;
-      } else if (strcmp(commandType, "visPitchF") == 0) {
-        m_pitchFromVisionF = input;
-      } else if (strcmp(commandType, "visTransXF") == 0) {
-        m_transXFromVisionF = input;
-      } else if (strcmp(commandType, "visTransYF") == 0) {
-        m_transYFromVisionF = input;
-      } else if (strcmp(commandType, "visTransZF") == 0) {
-        m_transZFromVisionF = input;
-      } else if (strcmp(commandType, "visYawR") == 0) {
-        m_yawFromVisionR = input;
-      } else if (strcmp(commandType, "visRollR") == 0) {
-        m_rollFromVisionR = input;
-      } else if (strcmp(commandType, "visPitchR") == 0) {
-        m_pitchFromVisionR = input;
-      } else if (strcmp(commandType, "visTransXR") == 0) {
-        m_transXFromVisionR = input;
-      } else if (strcmp(commandType, "visTransYR") == 0) {
-        m_transYFromVisionR = input;
-      } else if (strcmp(commandType, "visTransZR") == 0) {
-        m_transZFromVisionR = input;
-      } 
-    }
-    // Find the next command in input string
-    command = strtok(0, "&");
-  }
-}
-
 /**
  * Update control loop output
- * @param desiredYaw
- * @param desiredRoll
- * @param desiredPitch
  */
-void rotate(float desiredYaw, float desiredRoll, float desiredPitch) {
-  m_pitchError = desiredPitch - m_measuredPitch;
-  m_rollError = desiredRoll - m_measuredRoll;
-  m_yawError = desiredYaw - m_measuredYaw;
+void rotate() {
+  m_pitchError = m_desiredPitch - m_measuredPitch;
+  m_rollError = m_desiredRoll - m_measuredRoll;
+  m_yawError = m_desiredYaw - m_measuredYaw;
 
   m_pitchError = (m_pitchError > 180) ? m_pitchError - 360 : m_pitchError;
   m_pitchError = (m_pitchError < -180) ? m_pitchError + 360 : m_pitchError;
@@ -301,20 +204,19 @@ void rotate(float desiredYaw, float desiredRoll, float desiredPitch) {
   m_pitchControlOutput = kPitchP * m_pitchError;
   m_rollControlOutput = kRollP * m_rollError;
   m_yawControlOutput = kYawP * m_yawError;
-  if (!isPitchAligned(desiredPitch)) {
+  if (!isPitchAligned(m_desiredPitch)) {
     m_rollControlOutput = 0;
     m_yawControlOutput = 0;
-  } else if (!isRollAligned(desiredRoll)) {
+  } else if (!isRollAligned(m_desiredRoll)) {
     m_yawControlOutput = 0;
   }
 }
 
 /**
  * Go to depth
- * @param desiredDepth
  */
-void goToDepth(float desiredDepth) {
-  m_depthError = desiredDepth - m_measuredDepth;
+void goToDepth() {
+  m_depthError = m_desiredDepth - m_measuredDepth;
   
   if (isPitchAligned(0) && isRollAligned(0) ) {
     m_depthControlOutput = kDepthP * m_depthError;
@@ -324,7 +226,7 @@ void goToDepth(float desiredDepth) {
 }
 
 /**
- * Translate to based on error input
+ * Translate to based on error input (m_translationError) given rotation is aligned
  */
 void translate() {
   if (isYawAligned(m_desiredYaw) && isPitchAligned(m_desiredPitch) && isRollAligned(m_desiredRoll) && isDepthReached(m_desiredDepth)) {
@@ -374,14 +276,6 @@ void runMotors() {
   m_verticalFrontRightMotor.writeMicroseconds(throttleToMicroseconds(m_verticalFrontRightPower));
   m_verticalBackLeftMotor.writeMicroseconds(throttleToMicroseconds(m_verticalBackLeftPower));
   m_verticalBackRightMotor.writeMicroseconds(throttleToMicroseconds(m_verticalBackRightPower));
-
-// // direct direct input stuff
-//  m_horizontalLeftMotor.writeMicroseconds(throttleToMicroseconds(directInputArray[0]));
-//  m_horizontalRightMotor.writeMicroseconds(throttleToMicroseconds(directInputArray[1]));
-//  m_verticalFrontLeftMotor.writeMicroseconds(throttleToMicroseconds(directInputArray[2]));
-//  m_verticalFrontRightMotor.writeMicroseconds(throttleToMicroseconds(directInputArray[3]));
-//  m_verticalBackLeftMotor.writeMicroseconds(throttleToMicroseconds(directInputArray[4]));
-//  m_verticalBackRightMotor.writeMicroseconds(throttleToMicroseconds(directInputArray[5]));
 }
 
 /**
@@ -412,20 +306,6 @@ void autonomousControl() {
  * Stop motors
  */
 void stopAll() {
-//  m_horizontalRightMotor.writeMicroseconds(throttleToMicroseconds(0));
-//  m_horizontalLeftMotor.writeMicroseconds(throttleToMicroseconds(0));
-//  m_verticalFrontRightMotor.writeMicroseconds(throttleToMicroseconds(0));
-//  m_verticalFrontLeftMotor.writeMicroseconds(throttleToMicroseconds(0));
-//  m_verticalBackRightMotor.writeMicroseconds(throttleToMicroseconds(0));
-//  m_verticalBackLeftMotor.writeMicroseconds(throttleToMicroseconds(0));
-
-//  m_horizontalLeftMotor.writeMicroseconds(1500);
-//  m_horizontalRightMotor.writeMicroseconds(1500);
-//  m_verticalFrontLeftMotor.writeMicroseconds(1500);
-//  m_verticalFrontRightMotor.writeMicroseconds(1500);
-//  m_verticalBackLeftMotor.writeMicroseconds(1500);
-//  m_verticalBackRightMotor.writeMicroseconds(1500);
-
   m_horizontalLeftPower = 0;
   m_horizontalRightPower = 0;
   m_verticalFrontLeftPower = 0;
@@ -451,24 +331,136 @@ double calculateInitialDepth() {
 }
 
 // ======================================================================================= //
+//                                                                     END OF AUTO METHODS //
+// ======================================================================================= //
+//                                                                                         //
+// ======================================================================================= //
+//                                                              START OF SERIAL OPERATIONS //
+// ======================================================================================= //
+
+// direct input //
+// hL:0.2&hR:0.2&vFL:0.2&vFR:0.2&vBL:0.2&vBR:0.2
+// hL:0&hR:0&vFL:0&vFR:0&vBL:0&vBR:0
+// yaw:0&pitch:0&roll:0
+
+// autonomous input //
+
+void receiveSerialInput() {
+  // Get next command from Serial (add 1 for final 0)
+  char input[INPUT_SIZE + 1];
+  byte size = Serial.readBytes(input, INPUT_SIZE);
+  // Add the final 0 to end the C string
+  input[size] = 0;
+
+  // Read each command pair
+  int index = 0;
+  char* command = strtok(input, "&");
+  while (command != 0) {
+    // Split the command in two values
+    char* separator = strchr(command, ':');
+    if (separator != 0)
+    {
+      // Actually split the string in 2: replace ':' with 0
+      *separator = 0;
+      const char* commandType = command;
+      ++separator;
+      float input = atof(separator);
+
+      if (strcmp(commandType, "hL") == 0) {
+        directInputArray[0] = input;
+      } else if (strcmp(commandType, "hR") == 0) {
+        directInputArray[1] = input;
+      } else if (strcmp(commandType, "vFL") == 0) {
+        directInputArray[2] = input;
+      } else if (strcmp(commandType, "vFR") == 0) {
+        directInputArray[3] = input;
+      } else if (strcmp(commandType, "vBL") == 0) {
+        directInputArray[4] = input;
+      } else if (strcmp(commandType, "vBR") == 0) {
+        directInputArray[5] = input;
+      } else if (strcmp(commandType, "cmdYaw") == 0) {
+        m_desiredYaw = input;
+      } else if (strcmp(commandType, "cmdPitch") == 0) {
+        m_desiredPitch = input;
+      } else if (strcmp(commandType, "cmdRoll") == 0) {
+        m_desiredRoll = input;
+      } else if (strcmp(commandType, "cmdDepth") == 0) {
+        m_desiredDepth = input;
+      } else if (strcmp(commandType, "cmdTrans") == 0) {
+        m_translationError = input;
+      } else if (strcmp(commandType, "visYawB") == 0) {
+        m_yawFromVisionB = input;
+      } else if (strcmp(commandType, "visRollB") == 0) {
+        m_rollFromVisionB = input;
+      } else if (strcmp(commandType, "visPitchB") == 0) {
+        m_pitchFromVisionB = input;
+      } else if (strcmp(commandType, "visXB") == 0) {
+        m_transXFromVisionB = input;
+      } else if (strcmp(commandType, "visYB") == 0) {
+        m_transYFromVisionB = input;
+      } else if (strcmp(commandType, "visZB") == 0) {
+        m_transZFromVisionB = input;
+      } else if (strcmp(commandType, "visYawF") == 0) {
+        m_yawFromVisionF = input;
+      } else if (strcmp(commandType, "visRollF") == 0) {
+        m_rollFromVisionF = input;
+      } else if (strcmp(commandType, "visPitchF") == 0) {
+        m_pitchFromVisionF = input;
+      } else if (strcmp(commandType, "visXF") == 0) {
+        m_transXFromVisionF = input;
+      } else if (strcmp(commandType, "visYF") == 0) {
+        m_transYFromVisionF = input;
+      } else if (strcmp(commandType, "visZF") == 0) {
+        m_transZFromVisionF = input;
+      } else if (strcmp(commandType, "visYawR") == 0) {
+        m_yawFromVisionR = input;
+      } else if (strcmp(commandType, "visRollR") == 0) {
+        m_rollFromVisionR = input;
+      } else if (strcmp(commandType, "visPitchR") == 0) {
+        m_pitchFromVisionR = input;
+      } else if (strcmp(commandType, "visXR") == 0) {
+        m_transXFromVisionR = input;
+      } else if (strcmp(commandType, "visYR") == 0) {
+        m_transYFromVisionR = input;
+      } else if (strcmp(commandType, "visZR") == 0) {
+        m_transZFromVisionR = input;
+      } else if (strcmp(commandType, "setAllMotors") == 0) {
+        directInputArray[0] = input;
+        directInputArray[1] = input;
+        directInputArray[2] = input;
+        directInputArray[3] = input;
+        directInputArray[4] = input;
+        directInputArray[5] = input;
+      }
+    }
+    // Find the next command in input string
+    command = strtok(0, "&");
+  }
+}
+
+// ======================================================================================= //
+//                                                                 END OF MOVEMENT METHODS //
+// ======================================================================================= //
+//                                                                                         //
+// ======================================================================================= //
 //                                                                      START OF MAIN CODE //
 // ======================================================================================= //
 
-void reportStates() {
+void displayStatesToSerial() {
   Serial.println("-----------");
-//  Serial.print("hL : ");
-//  Serial.println(m_horizontalLeftPower);
-//  Serial.print("hR : ");
-//  Serial.println(m_horizontalRightPower);
-//  Serial.print("vFL : ");
-//  Serial.println(m_verticalFrontLeftPower);
-//  Serial.print("vFR : ");
-//  Serial.println(m_verticalFrontRightPower);
-//  Serial.print("vBL : ");
-//  Serial.println(m_verticalBackLeftPower);
-//  Serial.print("vBR : ");
-//  Serial.println(m_verticalBackRightPower);
-//  Serial.println("");
+  Serial.print("hL : ");
+  Serial.println(m_horizontalLeftPower);
+  Serial.print("hR : ");
+  Serial.println(m_horizontalRightPower);
+  Serial.print("vFL : ");
+  Serial.println(m_verticalFrontLeftPower);
+  Serial.print("vFR : ");
+  Serial.println(m_verticalFrontRightPower);
+  Serial.print("vBL : ");
+  Serial.println(m_verticalBackLeftPower);
+  Serial.print("vBR : ");
+  Serial.println(m_verticalBackRightPower);
+  Serial.println("");
 
   Serial.print("Yaw Measured: ");
   Serial.println(m_measuredYaw);
@@ -516,11 +508,11 @@ void setup() {
   stopAll();
   delay(10000);
   Serial.println("MOTORS INSTANTIATED");
-
-  Serial.println("IMU INSTANTIATING");
-  instantiateIMU();
-  delay(5000);
-  Serial.println("IMU INSTANTIATED");
+//
+//  Serial.println("IMU INSTANTIATING");
+//  instantiateIMU();
+//  delay(5000);
+//  Serial.println("IMU INSTANTIATED");
 //
 //  Serial.println("BAROMETER INSTANTIATING");
 //  instantiateBarometer();
@@ -531,7 +523,7 @@ void setup() {
 void loop() {
   receiveSerialInput();
   
-  updateIMU();
+//  updateIMU();
   limitOrientationMeasurements();
 //  updateBarometer();
   
@@ -541,12 +533,10 @@ void loop() {
 //    rotate(m_desiredYaw, m_desiredRoll, m_desiredPitch);
 //  }
 
-  rotate(m_desiredYaw, m_desiredRoll, m_desiredPitch);
+  rotate();
 
-  reportStates();
-
-//  directMotorControl(); // direct serial input to motors
-  autonomousControl();  // autonomous update input to motors
+  directMotorControl(); // direct serial input to motors
+//  autonomousControl();  // autonomous update input to motors
   runMotors(); // actuate motors 
 
   delay(LOOP_TIME_DELAY_MS);
