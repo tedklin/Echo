@@ -201,6 +201,11 @@ float m_pitchError = 0;
 float m_depthError = 0;
 float m_translationError = 0;
 
+bool isYawAligned = false;
+bool isRollAligned = false;
+bool isPitchAligned = false;
+bool isDepthReached = false;
+
 float m_yawFromVisionB = 0;
 float m_pitchFromVisionB = 0;
 float m_rollFromVisionB = 0;
@@ -231,6 +236,7 @@ void calculateControlOutputs() {
   m_yawError = m_desiredYaw - m_measuredYaw;
   m_pitchError = m_desiredPitch - m_measuredPitch;
   m_rollError = m_desiredRoll - m_measuredRoll;
+  m_depthError = m_desiredDepth - m_measuredDepth;
 
   m_yawError = (m_yawError > 180) ? m_yawError - 360 : m_yawError;
   m_yawError = (m_yawError < -180) ? m_yawError + 360 : m_yawError;
@@ -247,18 +253,22 @@ void calculateControlOutputs() {
   m_pitchRateControlOutput = kPitchRateP * -m_measuredPitchRate;
   m_rollRateControlOutput = kRollRateP * -m_measuredRollRate;
 
-  m_depthError = m_desiredDepth - m_measuredDepth;
   m_depthControlOutput = kDepthP * m_depthError;
+
+  isYawAligned = abs(m_yawError) < kYawThreshold;
+  isRollAligned = abs(m_rollError) < kRollThreshold;
+  isPitchAligned = abs(m_pitchError) < kPitchThreshold;
+  isDepthReached = abs(m_depthError) < kDepthThreshold;
 }
 
 /**
  * Limit control outputs in effect
  */
 void rotate() {
-  if (!isRollAligned(m_desiredRoll)) {
+  if (!isRollAligned()) {
     m_pitchControlOutput = 0;
     m_yawControlOutput = 0;
-  } else if (!isPitchAligned(m_desiredPitch)) {
+  } else if (!isPitchAligned()) {
     m_yawControlOutput = 0;
   }
 
@@ -279,8 +289,11 @@ void rotate() {
  * Go to depth
  */
 void goToDepth() {
+  m_desiredPitch = 0;
+  m_desiredRoll = 0;
+  rotate();
   
-  if (isPitchAligned(0) && isRollAligned(0) ) {
+  if (isPitchAligned && isRollAligned) {
     m_depthControlOutput = kDepthP * m_depthError;
   } else {
     m_depthControlOutput = 0;
@@ -291,36 +304,11 @@ void goToDepth() {
  * Translate to based on error input (m_translationError) given rotation is aligned
  */
 void translate() {
-  if (isYawAligned(m_desiredYaw) && isPitchAligned(m_desiredPitch) && isRollAligned(m_desiredRoll) && isDepthReached(m_desiredDepth)) {
+  if (isYawAligned && isPitchAligned && isRollAligned && isDepthReached) {
     m_translationControlOutput = kTranslationP * m_translationError;
   } else {
     m_translationControlOutput = 0;
   }
-}
-
-bool isYawAligned(float desiredYaw) {
-  double error = m_measuredYaw - desiredYaw;
-  error = (error > 180) ? error - 360 : error;
-  error = (error < -180) ? error + 360 : error;
-  return abs(error) < kYawThreshold;
-}
-
-bool isPitchAligned(float desiredPitch) {
-  double error = m_measuredPitch - desiredPitch;
-  error = (error > 180) ? error - 360 : error;
-  error = (error < -180) ? error + 360 : error;
-  return abs(error) < kPitchThreshold;
-}
-
-bool isRollAligned(float desiredRoll) {
-  double error = m_measuredRoll - desiredRoll;
-  error = (error > 180) ? error - 360 : error;
-  error = (error < -180) ? error + 360 : error;
-  return abs(error) < kRollThreshold;
-}
-
-bool isDepthReached(float desiredDepth) {
-  return abs(m_measuredDepth - desiredDepth) < kDepthThreshold;
 }
 
 /**
@@ -629,7 +617,7 @@ void loop() {
   
 //  if (!isDepthReached(m_desiredDepth)) {
 //    goToDepth(m_desiredDepth);
-//  } else if (!isYawAligned(m_desiredYaw) && !isRollAligned(m_desiredRoll) && !isPitchAligned(m_desiredPitch)) {
+//  } else if (!isYawAligned && !isRollAligned && !isPitchAligned) {
 //    rotate(s);
 //  }
 
