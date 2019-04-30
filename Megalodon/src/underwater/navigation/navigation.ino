@@ -24,6 +24,10 @@ const float kDepthP = 0;
 const float kDepthI = 0;
 const float kDepthD = 0;
 
+const float kYawRateP = 0;
+const float kPitchRateP = 0;
+const float kRollRateP = 0;
+
 const float kTranslationP = 0;
 const float kTranslationI = 0;
 const float kTranslationD = 0;
@@ -123,9 +127,9 @@ void updateIMU() {
   m_measuredPitch = euler.z();
 
   imu::Vector<3> ang_rates = m_imu.getVector(Adafruit_BNO055::VECTOR_GYROSCOPE);
-  m_measuredYawRate = euler.x();
-  m_measuredRollRate = euler.y();
-  m_measuredPitchRate = euler.z();
+  m_measuredYawRate = euler.x() * RAD_TO_DEG;
+  m_measuredRollRate = euler.y() * RAD_TO_DEG;
+  m_measuredPitchRate = euler.z() * RAD_TO_DEG;
 }
 
 void limitOrientationMeasurements() {
@@ -187,6 +191,10 @@ float m_pitchControlOutput = 0;
 float m_depthControlOutput = 0;
 float m_translationControlOutput = 0;
 
+float m_yawRateControlOutput = 0;
+float m_rollRateControlOutput = 0;
+float m_pitchRateControlOutput = 0;
+
 float m_yawError = 0;
 float m_rollError = 0;
 float m_pitchError = 0;
@@ -216,6 +224,10 @@ float m_transZFromVisionR = 0;
 
 float directInputArray[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
+void calculateRawControlOutputs() {
+  
+}
+
 /**
  * Update control loop output
  */
@@ -240,6 +252,10 @@ void rotate() {
   } else if (!isPitchAligned(m_desiredPitch)) {
     m_yawControlOutput = 0;
   }
+
+  m_yawRateControlOutput = 0;
+  m_rollRateControlOutput = 0;
+  m_pitchRateControlOutput = 0;
 
 //  //tuning individual
 //  m_rollControlOutput = kRollP * m_rollError;
@@ -272,6 +288,9 @@ void translate() {
   } else {
     m_translationControlOutput = 0;
   }
+  m_yawRateControlOutput = kYawRateP * -m_measuredYawRate;
+  m_pitchRateControlOutput = kPitchRateP * -m_measuredPitchRate;
+  m_rollRateControlOutput = kRollRateP * -m_measuredRollRate;
 }
 
 bool isYawAligned(float desiredYaw) {
