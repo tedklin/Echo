@@ -465,6 +465,13 @@ void receiveSerial() {
         directInputArray[3] = input;
         directInputArray[4] = input;
         directInputArray[5] = input;
+      } else if (strcmp(commandType, "stop") == 0) {
+        directInputArray[0] = 0;
+        directInputArray[1] = 0;
+        directInputArray[2] = 0;
+        directInputArray[3] = 0;
+        directInputArray[4] = 0;
+        directInputArray[5] = 0;
       }
     }
     // Find the next command in input string
