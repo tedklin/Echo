@@ -225,10 +225,10 @@ void rotate() {
   m_pitchControlOutput = kPitchP * m_pitchError;
   m_rollControlOutput = kRollP * m_rollError;
   m_yawControlOutput = kYawP * m_yawError;
-  if (!isPitchAligned(m_desiredPitch)) {
-    m_rollControlOutput = 0;
+  if (!isRollAligned(m_desiredRoll)) {
+    m_pitchControlOutput = 0;
     m_yawControlOutput = 0;
-  } else if (!isRollAligned(m_desiredRoll)) {
+  } else if (!isPitchAligned(m_desiredPitch)) {
     m_yawControlOutput = 0;
   }
 }
@@ -483,7 +483,7 @@ void sendSerial() {
 }
 
 void displayStatesToSerial() {
-//  Serial.println("-----------");
+  Serial.println("-----------");
 //  Serial.print("hL : ");
 //  Serial.println(m_horizontalLeftPower);
 //  Serial.print("hR : ");
@@ -497,16 +497,16 @@ void displayStatesToSerial() {
 //  Serial.print("vBR : ");
 //  Serial.println(m_verticalBackRightPower);
 //  Serial.println("");
-//
-//  Serial.print("Yaw Measured: ");
-//  Serial.println(m_measuredYaw);
-//  Serial.print("Roll Measured: " );
-//  Serial.println(m_measuredRoll);
-//  Serial.print("Pitch Measured: " );
-//  Serial.println(m_measuredPitch);
+
+  Serial.print("Yaw Measured: ");
+  Serial.println(m_measuredYaw);
+  Serial.print("Roll Measured: " );
+  Serial.println(m_measuredRoll);
+  Serial.print("Pitch Measured: " );
+  Serial.println(m_measuredPitch);
 //  Serial.print("Depth Measured: " );
 //  Serial.println(m_measuredDepth);
-//
+
 //  Serial.print("Yaw Desired: ");
 //  Serial.println(m_desiredYaw);
 //  Serial.print("Roll Desired: " );
@@ -524,16 +524,16 @@ void displayStatesToSerial() {
 //  Serial.println(m_pitchError);
 //  Serial.print("Depth Error: " );
 //  Serial.println(m_depthError);
-//  
-//  Serial.print("Yaw Control Output: ");
-//  Serial.println(m_yawControlOutput);
-//  Serial.print("Roll Control Output: " );
-//  Serial.println(m_rollControlOutput);
-//  Serial.print("Pitch Control Output: " );
-//  Serial.println(m_pitchControlOutput);
+  
+  Serial.print("Yaw Control Output: ");
+  Serial.println(m_yawControlOutput);
+  Serial.print("Roll Control Output: " );
+  Serial.println(m_rollControlOutput);
+  Serial.print("Pitch Control Output: " );
+  Serial.println(m_pitchControlOutput);
 //  Serial.print("Depth Control Output: " );
 //  Serial.println(m_depthControlOutput);
-//  Serial.println("-----------");
+  Serial.println("-----------");
 }
 
 void simulate() {
@@ -563,7 +563,7 @@ void simulate() {
 void setup() {
   Serial.begin(9600);
 
-  instantiateMotors();
+//  instantiateMotors();
   instantiateIMU();
 //  instantiateBarometer();
 }
@@ -584,8 +584,8 @@ void loop() {
   rotate();
 
 //  directMotorControl(); // direct serial input to motors
-  autonomousControl();  // autonomous update input to motors
-  runMotors(); // actuate motors
+//  autonomousControl();  // autonomous update input to motors
+//  runMotors(); // actuate motors
 
 //  sendSerial();
 
