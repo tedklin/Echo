@@ -28,9 +28,9 @@ const float kTranslationP = 0;
 const float kTranslationI = 0;
 const float kTranslationD = 0;
 
-const float kYawThreshold = 20;
-const float kPitchThreshold = 20;
-const float kRollThreshold = 20;
+const float kYawThreshold = 10;
+const float kPitchThreshold = 10;
+const float kRollThreshold = 10;
 const float kDepthThreshold = 5;
 
 // ======================================================================================= //
@@ -221,9 +221,9 @@ void rotate() {
   m_rollError = (m_rollError < -180) ? m_rollError + 360 : m_rollError;
   m_yawError = (m_yawError > 180) ? m_yawError - 360 : m_yawError;
   m_yawError = (m_yawError < -180) ? m_yawError + 360 : m_yawError;
-  
-  m_pitchControlOutput = kPitchP * m_pitchError;
+
   m_rollControlOutput = kRollP * m_rollError;
+  m_pitchControlOutput = kPitchP * m_pitchError;
   m_yawControlOutput = kYawP * m_yawError;
   if (!isRollAligned(m_desiredRoll)) {
     m_pitchControlOutput = 0;
@@ -231,6 +231,14 @@ void rotate() {
   } else if (!isPitchAligned(m_desiredPitch)) {
     m_yawControlOutput = 0;
   }
+
+//  //tuning individual
+//  m_rollControlOutput = kRollP * m_rollError;
+////  m_rollControlOutput = 0;
+////  m_pitchControlOutput = kPitchP * m_pitchError;
+//  m_pitchControlOutput = 0;
+////  m_yawControlOutput = kYawP * m_yawError;
+//  m_yawControlOutput = 0;
 }
 
 /**
