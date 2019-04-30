@@ -254,6 +254,7 @@ void calculateControlOutputs() {
   m_rollRateControlOutput = kRollRateP * -m_measuredRollRate;
 
   m_depthControlOutput = kDepthP * m_depthError;
+  m_translationControlOutput = kTranslationP * m_translationError;
 
   isYawAligned = abs(m_yawError) < kYawThreshold;
   isRollAligned = abs(m_rollError) < kRollThreshold;
@@ -265,10 +266,10 @@ void calculateControlOutputs() {
  * Limit control outputs in effect
  */
 void rotate() {
-  if (!isRollAligned()) {
+  if (!isRollAligned) {
     m_pitchControlOutput = 0;
     m_yawControlOutput = 0;
-  } else if (!isPitchAligned()) {
+  } else if (!isPitchAligned) {
     m_yawControlOutput = 0;
   }
 
@@ -292,10 +293,8 @@ void goToDepth() {
   m_desiredPitch = 0;
   m_desiredRoll = 0;
   rotate();
-  
-  if (isPitchAligned && isRollAligned) {
-    m_depthControlOutput = kDepthP * m_depthError;
-  } else {
+
+  if (!isPitchAligned || !isRollAligned) {
     m_depthControlOutput = 0;
   }
 }
@@ -304,9 +303,7 @@ void goToDepth() {
  * Translate to based on error input (m_translationError) given rotation is aligned
  */
 void translate() {
-  if (isYawAligned && isPitchAligned && isRollAligned && isDepthReached) {
-    m_translationControlOutput = kTranslationP * m_translationError;
-  } else {
+  if (!isYawAligned || !isPitchAligned || !isRollAligned || !isDepthReached) {
     m_translationControlOutput = 0;
   }
 }
@@ -615,10 +612,10 @@ void loop() {
   
   displayStatesToSerial();
   
-//  if (!isDepthReached(m_desiredDepth)) {
-//    goToDepth(m_desiredDepth);
+//  if (!isDepthReached) {
+//    goToDepth();
 //  } else if (!isYawAligned && !isRollAligned && !isPitchAligned) {
-//    rotate(s);
+//    rotate();
 //  }
 
   rotate();
