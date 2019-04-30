@@ -224,28 +224,37 @@ float m_transZFromVisionR = 0;
 
 float directInputArray[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
-void calculateRawControlOutputs() {
-  
-}
-
 /**
  * Update control loop output
  */
-void rotate() {
+void calculateControlOutputs() {
+  m_yawError = m_desiredYaw - m_measuredYaw;
   m_pitchError = m_desiredPitch - m_measuredPitch;
   m_rollError = m_desiredRoll - m_measuredRoll;
-  m_yawError = m_desiredYaw - m_measuredYaw;
 
+  m_yawError = (m_yawError > 180) ? m_yawError - 360 : m_yawError;
+  m_yawError = (m_yawError < -180) ? m_yawError + 360 : m_yawError;
   m_pitchError = (m_pitchError > 180) ? m_pitchError - 360 : m_pitchError;
   m_pitchError = (m_pitchError < -180) ? m_pitchError + 360 : m_pitchError;
   m_rollError = (m_rollError > 180) ? m_rollError - 360 : m_rollError;
   m_rollError = (m_rollError < -180) ? m_rollError + 360 : m_rollError;
-  m_yawError = (m_yawError > 180) ? m_yawError - 360 : m_yawError;
-  m_yawError = (m_yawError < -180) ? m_yawError + 360 : m_yawError;
 
-  m_rollControlOutput = kRollP * m_rollError;
-  m_pitchControlOutput = kPitchP * m_pitchError;
   m_yawControlOutput = kYawP * m_yawError;
+  m_pitchControlOutput = kPitchP * m_pitchError;
+  m_rollControlOutput = kRollP * m_rollError;
+
+  m_yawRateControlOutput = kYawRateP * -m_measuredYawRate;
+  m_pitchRateControlOutput = kPitchRateP * -m_measuredPitchRate;
+  m_rollRateControlOutput = kRollRateP * -m_measuredRollRate;
+
+  m_depthError = m_desiredDepth - m_measuredDepth;
+  m_depthControlOutput = kDepthP * m_depthError;
+}
+
+/**
+ * Limit control outputs in effect
+ */
+void rotate() {
   if (!isRollAligned(m_desiredRoll)) {
     m_pitchControlOutput = 0;
     m_yawControlOutput = 0;
@@ -270,7 +279,6 @@ void rotate() {
  * Go to depth
  */
 void goToDepth() {
-  m_depthError = m_desiredDepth - m_measuredDepth;
   
   if (isPitchAligned(0) && isRollAligned(0) ) {
     m_depthControlOutput = kDepthP * m_depthError;
@@ -288,9 +296,6 @@ void translate() {
   } else {
     m_translationControlOutput = 0;
   }
-  m_yawRateControlOutput = kYawRateP * -m_measuredYawRate;
-  m_pitchRateControlOutput = kPitchRateP * -m_measuredPitchRate;
-  m_rollRateControlOutput = kRollRateP * -m_measuredRollRate;
 }
 
 bool isYawAligned(float desiredYaw) {
@@ -333,18 +338,6 @@ float throttleToMicroseconds(float throttle) {
 }
 
 /**
- * Actuate motors
- */
-void runMotors() {
-  m_horizontalLeftMotor.writeMicroseconds(throttleToMicroseconds(m_horizontalLeftPower));
-  m_horizontalRightMotor.writeMicroseconds(throttleToMicroseconds(m_horizontalRightPower));
-  m_verticalFrontLeftMotor.writeMicroseconds(throttleToMicroseconds(m_verticalFrontLeftPower));
-  m_verticalFrontRightMotor.writeMicroseconds(throttleToMicroseconds(-m_verticalFrontRightPower));
-  m_verticalBackLeftMotor.writeMicroseconds(throttleToMicroseconds(m_verticalBackLeftPower));
-  m_verticalBackRightMotor.writeMicroseconds(throttleToMicroseconds(-m_verticalBackRightPower));
-}
-
-/**
  * Direct motor control
  */
 void directMotorControl() {
@@ -357,7 +350,7 @@ void directMotorControl() {
 }
 
 /**
- * Autonomous motor control
+ * Autonomous motor control (all control outputs added)
  */
 void autonomousControl() {
 //  m_horizontalLeftPower = -m_yawControlOutput + m_translationControlOutput;
@@ -382,7 +375,17 @@ void stopAll() {
   m_verticalBackRightPower = 0;
 }
 
-int state = 0;
+/**
+ * Actuate motors
+ */
+void runMotors() {
+  m_horizontalLeftMotor.writeMicroseconds(throttleToMicroseconds(m_horizontalLeftPower));
+  m_horizontalRightMotor.writeMicroseconds(throttleToMicroseconds(m_horizontalRightPower));
+  m_verticalFrontLeftMotor.writeMicroseconds(throttleToMicroseconds(m_verticalFrontLeftPower));
+  m_verticalFrontRightMotor.writeMicroseconds(throttleToMicroseconds(-m_verticalFrontRightPower));
+  m_verticalBackLeftMotor.writeMicroseconds(throttleToMicroseconds(m_verticalBackLeftPower));
+  m_verticalBackRightMotor.writeMicroseconds(throttleToMicroseconds(-m_verticalBackRightPower));
+}
 
 // ======================================================================================= //
 //                                                                 END OF MOVEMENT METHODS //
@@ -391,6 +394,8 @@ int state = 0;
 // ======================================================================================= //
 //                                                                   START OF AUTO METHODS //
 // ======================================================================================= //
+
+int state = 0;
 
 double calculateInitialYaw() {
   return atan2(m_transXFromVisionF, m_transZFromVisionF);
@@ -618,6 +623,8 @@ void loop() {
 //  simulate()
 
   updateStateEstimation();
+  calculateControlOutputs();
+  
   displayStatesToSerial();
   
 //  if (!isDepthReached(m_desiredDepth)) {
