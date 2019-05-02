@@ -61,8 +61,8 @@ MS5837 m_barometer;
 void instantiateMotors() {
   Serial.println("MOTORS INSTANTIATING");
   
-  m_horizontalLeftMotor.attach(6);
-  m_horizontalRightMotor.attach(11);
+  m_horizontalLeftMotor.attach(11);
+  m_horizontalRightMotor.attach(6);
   m_verticalFrontLeftMotor.attach(3);
   m_verticalFrontRightMotor.attach(10);
   m_verticalBackLeftMotor.attach(9);
@@ -391,8 +391,8 @@ void stopAll() {
  * Actuate motors
  */
 void runMotors() {
-  m_horizontalLeftMotor.writeMicroseconds(throttleToMicroseconds(m_horizontalLeftPower));
-  m_horizontalRightMotor.writeMicroseconds(throttleToMicroseconds(-m_horizontalRightPower));
+  m_horizontalLeftMotor.writeMicroseconds(throttleToMicroseconds(-m_horizontalLeftPower));
+  m_horizontalRightMotor.writeMicroseconds(throttleToMicroseconds(m_horizontalRightPower));
   m_verticalFrontLeftMotor.writeMicroseconds(throttleToMicroseconds(-m_verticalFrontLeftPower));
   m_verticalFrontRightMotor.writeMicroseconds(throttleToMicroseconds(m_verticalFrontRightPower));
   m_verticalBackLeftMotor.writeMicroseconds(throttleToMicroseconds(m_verticalBackLeftPower));
@@ -623,7 +623,7 @@ void simulate() {
 // ======================================================================================= //
 
 void setup() {
-//  Serial.begin(9600);
+  Serial.begin(9600);
 
   instantiateMotors();
   instantiateIMU();
@@ -633,7 +633,7 @@ void setup() {
 }
 
 void loop() {
-//  receiveSerial();
+  receiveSerial();
 //  simulate();
   long timestamp = millis();
   m_deltaTime = timestamp - m_previousTime;
@@ -651,8 +651,8 @@ void loop() {
 
   rotate();
 
-//  directMotorControl(); // direct serial input to motors
-  autonomousControl();  // autonomous update input to motors
+  directMotorControl(); // direct serial input to motors
+//  autonomousControl();  // autonomous update input to motors
   runMotors(); // actuate motors
 
 //  sendSerial();
