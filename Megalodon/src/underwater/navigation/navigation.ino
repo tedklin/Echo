@@ -14,13 +14,13 @@
 long m_previousTime = 0;
 long m_deltaTime = 0;
 
-const float kYawP = 0.001;
+const float kYawP = 0.003;
 const float kYawI = 0;
 const float kYawD = 0;
-const float kPitchP = 0.015;
+const float kPitchP = 0.005;
 const float kPitchI = 0;
 const float kPitchD = 0;
-const float kRollP = 0.015;
+const float kRollP = 0.005;
 const float kRollI = 0;
 const float kRollD = 0;
 const float kDepthP = 0;
@@ -293,12 +293,12 @@ void rotate() {
 //  m_pitchRateControlOutput = 0;
 
   //tuning individual
-  m_rollControlOutput = kRollP * m_rollError;
-//  m_rollControlOutput = 0;
+//  m_rollControlOutput = kRollP * m_rollError;
+  m_rollControlOutput = 0;
 //  m_pitchControlOutput = kPitchP * m_pitchError;
   m_pitchControlOutput = 0;
-//  m_yawControlOutput = kYawP * m_yawError;
-  m_yawControlOutput = 0;
+  m_yawControlOutput = kYawP * m_yawError;
+//  m_yawControlOutput = 0;
 }
 
 /**
@@ -360,14 +360,19 @@ void directMotorControl() {
  * Autonomous motor control (all control outputs added)
  */
 void autonomousControl() {
-//  m_horizontalLeftPower = -m_yawControlOutput + m_translationControlOutput;
-//  m_horizontalRightPower = m_yawControlOutput + m_translationControlOutput;
-  m_horizontalLeftPower = 0;
-  m_horizontalRightPower = 0;
-  m_verticalFrontLeftPower = m_rollControlOutput + m_pitchControlOutput + m_depthControlOutput;
-  m_verticalFrontRightPower = -m_rollControlOutput + m_pitchControlOutput + m_depthControlOutput;
-  m_verticalBackLeftPower = m_rollControlOutput - m_pitchControlOutput + m_depthControlOutput;
-  m_verticalBackRightPower = -m_rollControlOutput - m_pitchControlOutput + m_depthControlOutput;
+  m_horizontalLeftPower = m_yawControlOutput + m_translationControlOutput;
+  m_horizontalRightPower = -m_yawControlOutput + m_translationControlOutput;
+  m_verticalFrontLeftPower = 0;
+  m_verticalFrontRightPower = 0;
+  m_verticalBackLeftPower = 0;
+  m_verticalBackRightPower = 0;
+
+//  m_horizontalLeftPower = 0;
+//  m_horizontalRightPower = 0;
+//  m_verticalFrontLeftPower = -m_rollControlOutput + m_pitchControlOutput + m_depthControlOutput;
+//  m_verticalFrontRightPower = m_rollControlOutput + m_pitchControlOutput + m_depthControlOutput;
+//  m_verticalBackLeftPower = -m_rollControlOutput - m_pitchControlOutput + m_depthControlOutput;
+//  m_verticalBackRightPower = m_rollControlOutput - m_pitchControlOutput + m_depthControlOutput;
 }
 
 /**
@@ -387,9 +392,9 @@ void stopAll() {
  */
 void runMotors() {
   m_horizontalLeftMotor.writeMicroseconds(throttleToMicroseconds(m_horizontalLeftPower));
-  m_horizontalRightMotor.writeMicroseconds(throttleToMicroseconds(m_horizontalRightPower));
-  m_verticalFrontLeftMotor.writeMicroseconds(throttleToMicroseconds(m_verticalFrontLeftPower));
-  m_verticalFrontRightMotor.writeMicroseconds(throttleToMicroseconds(-m_verticalFrontRightPower));
+  m_horizontalRightMotor.writeMicroseconds(throttleToMicroseconds(-m_horizontalRightPower));
+  m_verticalFrontLeftMotor.writeMicroseconds(throttleToMicroseconds(-m_verticalFrontLeftPower));
+  m_verticalFrontRightMotor.writeMicroseconds(throttleToMicroseconds(m_verticalFrontRightPower));
   m_verticalBackLeftMotor.writeMicroseconds(throttleToMicroseconds(m_verticalBackLeftPower));
   m_verticalBackRightMotor.writeMicroseconds(throttleToMicroseconds(-m_verticalBackRightPower));
 }
@@ -540,7 +545,7 @@ void sendSerial() {
 }
 
 void displayStatesToSerial() {
-  Serial.println("-----------");
+//  Serial.println("-----------");
 //  Serial.print("hL : ");
 //  Serial.println(m_horizontalLeftPower);
 //  Serial.print("hR : ");
@@ -590,7 +595,7 @@ void displayStatesToSerial() {
 //  Serial.println(m_pitchControlOutput);
 //  Serial.print("Depth Control Output: " );
 //  Serial.println(m_depthControlOutput);
-  Serial.println("-----------");
+//  Serial.println("-----------");
 }
 
 void simulate() {
@@ -618,7 +623,7 @@ void simulate() {
 // ======================================================================================= //
 
 void setup() {
-  Serial.begin(9600);
+//  Serial.begin(9600);
 
   instantiateMotors();
   instantiateIMU();
@@ -628,7 +633,7 @@ void setup() {
 }
 
 void loop() {
-  receiveSerial();
+//  receiveSerial();
 //  simulate();
   long timestamp = millis();
   m_deltaTime = timestamp - m_previousTime;
@@ -636,7 +641,7 @@ void loop() {
   updateStateEstimation();
   calculateControlOutputs();
   
-  displayStatesToSerial();
+//  displayStatesToSerial();
   
 //  if (!isDepthReached) {
 //    goToDepth();
