@@ -13,6 +13,8 @@
 
 long m_previousTime = 0;
 long m_deltaTime = 0;
+long m_startTime = 0;
+long m_totalTimeElapsed = 0;
 
 const float kYawP = 0.005;
 const float kYawI = 0;
@@ -459,11 +461,13 @@ void findWreckage() {
   if (wreckageFound) {
     m_desiredYaw = m_desiredAngleFromVision;
     m_desiredDepth = m_desiredDepthFromVision;
-
-    stabilize();
-    rotate();
-    goToDepth();
   }
+
+  stabilize();
+  rotate();
+  goToDepth();
+
+  
 }
 
 // ======================================================================================= //
@@ -685,6 +689,7 @@ void setup() {
   instantiateIMU();
 //  instantiateBarometer();
 
+  m_startTime = millis();
   m_previousTime = millis();
 }
 
@@ -693,6 +698,7 @@ void loop() {
 //  simulate();
   long timestamp = millis();
   m_deltaTime = timestamp - m_previousTime;
+  m_totalTimeElapsed = timestamp - m_startTime;
 
   updateStateEstimation();
   calculateControlOutputs();
