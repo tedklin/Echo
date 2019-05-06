@@ -212,17 +212,15 @@ float m_lastYawError = 0;
 float m_lastRollError = 0;
 float m_lastPitchError = 0;
 
-bool isYawAligned = false;
-bool isRollAligned = false;
-bool isPitchAligned = false;
-bool isDepthReached = false;
-
 float m_yawFromVisionB = 0;
 float m_pitchFromVisionB = 0;
 float m_rollFromVisionB = 0;
 float m_transXFromVisionB = 0;
 float m_transYFromVisionB = 0;
 float m_transZFromVisionB = 0;
+
+float m_desiredAngleFromVision = 0;
+float m_desiredDepthFromVision = 0;
 
 float m_yawFromVisionF = 0;
 float m_pitchFromVisionF = 0;
@@ -275,63 +273,39 @@ void calculateControlOutputs() {
 
   m_depthControlOutput = kDepthP * m_depthError;
   m_translationControlOutput = kTranslationP * m_translationError;
-
-  isYawAligned = abs(m_yawError) < kYawThreshold;
-  isRollAligned = abs(m_rollError) < kRollThreshold;
-  isPitchAligned = abs(m_pitchError) < kPitchThreshold;
-  isDepthReached = abs(m_depthError) < kDepthThreshold;
 }
 
-/**
- * Limit control outputs in effect
- */
-void rotate() {
-//  if (!isRollAligned) {
-//    m_pitchControlOutput = 0;
-//    m_yawControlOutput = 0;
-//  } else if (!isPitchAligned) {
-//    m_yawControlOutput = 0;
-//  }
-//
-//  m_yawRateControlOutput = 0;
-//  m_rollRateControlOutput = 0;
-//  m_pitchRateControlOutput = 0;
-
-  //tuning individual
-//  m_rollControlOutput = kRollP * m_rollError;
-  m_rollControlOutput = 0;
-//  m_pitchControlOutput = kPitchP * m_pitchError;
-  m_pitchControlOutput = 0;
-//  m_yawControlOutput = kYawP * m_yawError;
-//  m_yawControlOutput = 0;
-
-  m_depthControlOutput = 0;
+bool isYawAligned(float yawToCompare) {
+  float error = yawToCompare - m_measuredYaw;
+  error = (error > 180) ? error - 360 : error;
+  error = (error < -180) ? error + 360 : error;
+  return abs(error) < kYawThreshold;
 }
 
-/**
- * Go to depth
- */
-void goToDepth() {
-//  m_desiredPitch = 0;
-//  m_desiredRoll = 0;
-//  rotate();
-//
-//  if (!isPitchAligned || !isRollAligned) {
-//    m_depthControlOutput = 0;
-//  }
-
-  m_yawControlOutput = 0;
-  m_rollControlOutput = 0;
-  m_pitchControlOutput = 0;
+bool isPitchAligned(float pitchToCompare) {
+  float error = pitchToCompare - m_measuredPitch;
+  error = (error > 180) ? error - 360 : error;
+  error = (error < -180) ? error + 360 : error;
+  return abs(error) < kPitchThreshold;
 }
 
-/**
- * Translate to based on error input (m_translationError) given rotation is aligned
- */
-void translate() {
-  if (!isYawAligned || !isPitchAligned || !isRollAligned || !isDepthReached) {
-    m_translationControlOutput = 0;
-  }
+bool isRollAligned(float rollToCompare) {
+  float error = rollToCompare - m_measuredPitch;
+  error = (error > 180) ? error - 360 : error;
+  error = (error < -180) ? error + 360 : error;
+  return abs(error) < kRollThreshold;
+}
+
+bool isAngleAligned(float measuredAngle, float desiredAngle, float threshold) {
+  float error = desiredAngle - measuredAngle;
+  error = (error > 180) ? error - 360 : error;
+  error = (error < -180) ? error + 360 : error;
+  return abs(error) < threshold;
+}
+
+bool isDepthReached(float depthToCompare) {
+  float error = depthToCompare - m_measuredDepth;
+  return abs(error) < kDepthThreshold;
 }
 
 /**
@@ -423,119 +397,74 @@ void runMotors() {
 //                                                                   START OF AUTO METHODS //
 // ======================================================================================= //
 
-//int state = 0;
-//
-//double calculateInitialYaw() {
-//  return atan2(m_transXFromVisionF, m_transZFromVisionF);
-//}
-//
-//double calculateInitialDepth() {
-//  return m_transYFromVisionF;
-//}
-//
-//bool start = false;
-//bool wreckageFound = false;
-//float m_subDesiredYaw = 0;
-//
-//void findWreckage() {
-//  universalMaxPower = 0.5;
-//  
-//  if (!start)  {
-//    m_subDesiredYaw = m_measuredYaw;
-//    start = true;
-//  }
-//  
-//  m_desiredRoll = 0;
-//  m_desiredPitch = 0;
-//  m_subDesiredYaw += 0.5; // tune this number to control how fast the Meg turns
-//  
-//  m_desiredYaw = fmod((360.0 - m_subDesiredYaw), 360.0);
-//
-//  m_desiredDepth = kDesiredDepthForWreckageLocation;
-//  if (isYawAligned && isPitchAligned && isRollAligned && isDepthReached) {
-//    translate();
-//  } else {
-//    rotate();
-//    if (isPitchAligned && isRollAligned && !isDepthReached) {
-//      goToDepth();
-//    }
-//  }
-//
-//  if (m_yawFromVisionF != 0) {
-//    wreckageFound = true;
-//  }
-//  
-//  rotate();
-//}
-//
-//void moveToWreckage() {
-//  universalMaxPower = 0.5;
-//  
-//  m_desiredYaw = m_yawFromVisionF; // lets call this horizontal offset from vision later, jk we need to calculate desired yaw in vision algorithm
-//  m_desiredDepth = kDesiredDepthForWreckageLocation;
-//  
-//  if (wreckageFound) {
-//    m_translationError = 0;
-//  } else {
-//    m_translationError = m_transXFromVision;
-//  }
-//  
-//  if (isYawAligned && isPitchAligned && isRollAligned && isDepthReached) {
-//    translate();
-//  } else {
-//    if (!isPitchAligned || !isRollAligned) {
-//      rotate();
-//    } else if (!isDepthReached) {
-//      goToDepth();
-//    }
-//  }
-//}
-//
-//bool targetAligned = false;
-//
-//void moveAboveTarget() {
-//  universalMaxPower = 0.5;
-//  
-//  if (visYawB == 0) {
-//    translate();
-//  } else {
-//    m_desiredYaw = visYawB;
-//    m_desiredRoll = 0;
-//    m_desriredPitch = 0;
-//  }
-//
-//  if (isYawAligned) {
-//    targetAligned = true;
-//  }
-//}
-//
-//void alignWithTarget() {
-//  universalMaxPower = 0.5;
-//  
-//  if (targetAligned) {
-//    if (m_desiredDepth < kMinDepth) {
-//      m_desiredDepth -= 0.5; // use this to control how fast the meg sinks
-//    } else {
-//      m_desiredDepth = kMinDepth;
-//      closeClaw();
-//      returnToHome();
-//    }
-//  }
-//}
-//
-//void returnToHome() {
-//  m_desiredRoll = 0;
-//  m_desiredPitch = 0;
-//  m_desiredYaw = m_measuredYaw;
-//
-//  m_desiredDepth = 0;
-//  if (!isRollAligned || !isPitchAligned) {
-//    rotate();
-//    m_desiredDepth = m_measuredDepth;
-//  }
-//  
-//  universalLimitedPower = 0.9;
-//}
+bool stateStabilized = false;
+bool stateRotated = false;
+bool stateDepthReached = false;
+
+void stabilize() {
+  m_desiredRoll = 0;
+  m_desiredPitch = 0;
+
+  stateStabilized = isRollAligned(m_desiredRoll) && isPitchAligned(m_desiredPitch);
+  
+  if (!isRollAligned(m_desiredRoll)) {
+    m_pitchControlOutput = 0;
+  }
+}
+
+/**
+ * Limit control outputs in effect
+ */
+void rotate() {
+  stateRotated = isYawAligned(m_desiredYaw);
+
+  if (!stateStabilized) {
+    m_yawControlOutput = 0;
+  }
+}
+
+/**
+ * Go to depth
+ */
+void goToDepth() {
+  stateDepthReached = isDepthReached(m_desiredDepth);
+
+  if (!stateStabilized || !stateRotated) {
+    m_depthControlOutput = 0;
+  }
+}
+
+/**
+ * Translate to based on error input (m_translationError) given rotation is aligned
+ */
+void translate() {
+  if (!stateStabilized || !stateRotated || !stateDepthReached) {
+    m_translationControlOutput = 0;
+    m_yawRateControlOutput = 0;
+    m_rollRateControlOutput = 0;
+    m_pitchRateControlOutput = 0;
+  }
+}
+
+bool wreckageFound = false;
+
+void findWreckage() {
+  m_desiredYaw += 0.5; // tune this to see how fast you turn to search for the target
+  m_desiredYaw = fmod((360.0 - m_desiredYaw), 360.0);
+
+  if (m_desiredAngleFromVision != 0 && m_desiredDepthFromVision != 0) {
+    wreckageFound = true;
+  }
+    
+  if (wreckageFound) {
+    m_desiredYaw = m_desiredAngleFromVision;
+    m_desiredDepth = m_desiredDepthFromVision;
+
+    stabilize();
+    rotate();
+    goToDepth();
+  }
+}
 
 // ======================================================================================= //
 //                                                                     END OF AUTO METHODS //
@@ -609,30 +538,34 @@ void receiveSerial() {
         m_transYFromVisionB = input;
       } else if (strcmp(commandType, "visZB") == 0) {
         m_transZFromVisionB = input;
-      } else if (strcmp(commandType, "visYawF") == 0) {
-        m_yawFromVisionF = input;
-      } else if (strcmp(commandType, "visRollF") == 0) {
-        m_rollFromVisionF = input;
-      } else if (strcmp(commandType, "visPitchF") == 0) {
-        m_pitchFromVisionF = input;
-      } else if (strcmp(commandType, "visXF") == 0) {
-        m_transXFromVisionF = input;
-      } else if (strcmp(commandType, "visYF") == 0) {
-        m_transYFromVisionF = input;
-      } else if (strcmp(commandType, "visZF") == 0) {
-        m_transZFromVisionF = input;
-      } else if (strcmp(commandType, "visYawR") == 0) {
-        m_yawFromVisionR = input;
-      } else if (strcmp(commandType, "visRollR") == 0) {
-        m_rollFromVisionR = input;
-      } else if (strcmp(commandType, "visPitchR") == 0) {
-        m_pitchFromVisionR = input;
-      } else if (strcmp(commandType, "visXR") == 0) {
-        m_transXFromVisionR = input;
-      } else if (strcmp(commandType, "visYR") == 0) {
-        m_transYFromVisionR = input;
-      } else if (strcmp(commandType, "visZR") == 0) {
-        m_transZFromVisionR = input;
+      } else if (strcmp(commandType, "visAngleF") == 0) {
+        m_desiredAngleFromVision = input; 
+      } else if (strcmp(commandType, "visDepthF") == 0) {
+        m_desiredDepthFromVision = input;
+//      } else if (strcmp(commandType, "visYawF") == 0) {
+//        m_yawFromVisionF = input;
+//      } else if (strcmp(commandType, "visRollF") == 0) {
+//        m_rollFromVisionF = input;
+//      } else if (strcmp(commandType, "visPitchF") == 0) {
+//        m_pitchFromVisionF = input;
+//      } else if (strcmp(commandType, "visXF") == 0) {
+//        m_transXFromVisionF = input;
+//      } else if (strcmp(commandType, "visYF") == 0) {
+//        m_transYFromVisionF = input;
+//      } else if (strcmp(commandType, "visZF") == 0) {
+//        m_transZFromVisionF = input;
+//      } else if (strcmp(commandType, "visYawR") == 0) {
+//        m_yawFromVisionR = input;
+//      } else if (strcmp(commandType, "visRollR") == 0) {
+//        m_rollFromVisionR = input;
+//      } else if (strcmp(commandType, "visPitchR") == 0) {
+//        m_pitchFromVisionR = input;
+//      } else if (strcmp(commandType, "visXR") == 0) {
+//        m_transXFromVisionR = input;
+//      } else if (strcmp(commandType, "visYR") == 0) {
+//        m_transYFromVisionR = input;
+//      } else if (strcmp(commandType, "visZR") == 0) {
+//        m_transZFromVisionR = input;
       } else if (strcmp(commandType, "setAllMotors") == 0) {
         directInputArray[0] = input;
         directInputArray[1] = input;
