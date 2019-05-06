@@ -451,23 +451,36 @@ void translate() {
 bool wreckageFound = false;
 
 void findWreckage() {
-  m_desiredYaw += 0.5; // tune this to see how fast you turn to search for the target
-  m_desiredYaw = fmod((360.0 - m_desiredYaw), 360.0);
-
-  if (m_desiredAngleFromVision != 0 && m_desiredDepthFromVision != 0) {
-    wreckageFound = true;
-  }
+  wreckageFound = m_desiredAngleFromVision != 0 && m_desiredDepthFromVision != 0;
     
   if (wreckageFound) {
     m_desiredYaw = m_desiredAngleFromVision;
     m_desiredDepth = m_desiredDepthFromVision;
+    m_translationControlOutput = 0.3; // tune this for how fast we translate once we're locked on
+  } else {
+    m_desiredYaw += 0.5; // tune this for how fast you turn to search for the target
+    m_desiredYaw = fmod((360.0 - m_desiredYaw), 360.0);
+    
+    m_desiredDepth = 2; // tune this for what depth you want to be at when you search for wreckage
+    m_translationControlOutput = 0;
   }
 
   stabilize();
   rotate();
   goToDepth();
+  translate();
+}
 
-  
+bool targetFound;
+bool lateralAligned;
+bool longitudinalAligned;
+
+void alignWithTarget() {
+  targetFound = m_yawFromVisionB != 0;
+
+  if (targetFound) {
+    lateralAligned = 
+  }
 }
 
 // ======================================================================================= //
@@ -694,31 +707,28 @@ void setup() {
 }
 
 void loop() {
-//  receiveSerial();
-//  simulate();
   long timestamp = millis();
   m_deltaTime = timestamp - m_previousTime;
+  m_previousTime = timestamp;
+  
   m_totalTimeElapsed = timestamp - m_startTime;
+  
+//  receiveSerial();
+//  simulate();
 
   updateStateEstimation();
   calculateControlOutputs();
   
 //  displayStatesToSerial();
-  
-//  if (!isDepthReached) {
-//    goToDepth();
-//  } else if (!isYawAligned && !isRollAligned && !isPitchAligned) {
-//    rotate();
-//  }
 
-  long tempTimestamp = timestamp % 40000;
-  if (tempTimestamp < 10000) {
+  long m_totalTimeElapsed = timestamp % 40000;
+  if (m_totalTimeElapsed < 10000) {
     m_desiredYaw = -90;
-  } else if (tempTimestamp > 10000 && tempTimestamp < 20000) {
+  } else if (m_totalTimeElapsed > 10000 && m_totalTimeElapsed < 20000) {
     m_desiredYaw = 0;
-  } else if (tempTimestamp > 20000 && tempTimestamp < 30000) {
+  } else if (m_totalTimeElapsed > 20000 && m_totalTimeElapsed < 30000) {
     m_desiredYaw = 90;
-  } else if (tempTimestamp > 30000) {
+  } else if (m_totalTimeElapsed > 30000) {
     m_desiredYaw = 0;
   }
 
@@ -729,7 +739,6 @@ void loop() {
 //  runMotors(); // actuate motors
 
 //  sendSerial();
-  m_previousTime = timestamp;
 
   delay(LOOP_TIME_DELAY_MS);
 }
