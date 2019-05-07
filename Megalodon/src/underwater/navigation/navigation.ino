@@ -214,10 +214,13 @@ float m_lastYawError = 0;
 float m_lastRollError = 0;
 float m_lastPitchError = 0;
 
-float m_yawOfAprilTag = 0;
-float m_depthOfAprilTag = 0;
-float m_yawOfBeacon = 0;
-float m_depthOfBeacon = 0;
+float m_aprilTagYaw = 0;
+float m_aprilTagDepth = 0;
+float m_aprilTagXOffset = 0;
+float m_aprilTagYOffset = 0;
+
+float m_beaconYaw = 0;
+float m_beaconDepth = 0;
 
 float directInputArray[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
@@ -435,8 +438,8 @@ void findWreckage() {
   wreckageFound = m_desiredAngleFromVision != 0 && m_desiredDepthFromVision != 0;
     
   if (wreckageFound) {
-    m_desiredYaw = m_desiredAngleFromVision;
-    m_desiredDepth = m_desiredDepthFromVision;
+    m_desiredYaw = m_yawOfBeacon;
+    m_desiredDepth = m_depthOfBeacon + 3; // tune this for vertical offset we want from the wreckage as we approach
     m_translationControlOutput = 0.3; // tune this for how fast we translate once we're locked on
   } else {
     m_desiredYaw += 0.5; // tune this for how fast you turn to search for the target
@@ -457,10 +460,14 @@ bool lateralAligned;
 bool longitudinalAligned;
 
 void alignWithTarget() {
-  targetFound = m_yawFromVisionB != 0;
+  targetFound = m_yawOfAprilTag != 0;
 
   if (targetFound) {
     lateralAligned = 
+    m_desiredDepth = m_depthOfAprilTag + 3; // tune this for vertical ofset we want from the apriltag as we attempt to align
+    if (stateDepthReached) {
+      
+    }
   }
 }
 
@@ -525,13 +532,17 @@ void receiveSerial() {
       } else if (strcmp(commandType, "cmdTrans") == 0) {
         m_translationError = input;
       } else if (strcmp(commandType, "tagYaw") == 0) {
-        m_yawOfAprilTag = input; // absolute with reference to the pool
+        m_aprilTagYaw = input; // absolute with reference to the pool
       } else if (strcmp(commandType, "tagDepth") == 0) {
-        m_depthOfAprilTag = input; // absolute with reference to the pool
+        m_aprilTagDepth = input; // absolute with reference to the pool
+      } else if (strcmp(commandType, "tagXOffset") == 0) {
+        m_aprilTagXOffset = input;
+      } else if (strcmp(commandType, "tagYOffset") == 0) {
+        m_aprilTagYOffset = input;
       } else if (strcmp(commandType, "beaconYaw") == 0) {
-        m_yawOfBeacon = input; 
+        m_beaconYaw = input; 
       } else if (strcmp(commandType, "beaconDepth") == 0) {
-        m_depthOfBeacon = input;
+        m_beaconDepth = input;
       } else if (strcmp(commandType, "setAllMotors") == 0) {
         directInputArray[0] = input;
         directInputArray[1] = input;
