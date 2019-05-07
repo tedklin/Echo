@@ -37,7 +37,7 @@ const float kTranslationP = 0;
 const float kTranslationI = 0;
 const float kTranslationD = 0;
 
-const float kYawThreshold = 10;
+const float kYawThreshold = 5;
 const float kPitchThreshold = 10;
 const float kRollThreshold = 10;
 const float kDepthThreshold = 5;
@@ -214,29 +214,10 @@ float m_lastYawError = 0;
 float m_lastRollError = 0;
 float m_lastPitchError = 0;
 
-float m_yawFromVisionB = 0;
-float m_pitchFromVisionB = 0;
-float m_rollFromVisionB = 0;
-float m_transXFromVisionB = 0;
-float m_transYFromVisionB = 0;
-float m_transZFromVisionB = 0;
-
-float m_desiredAngleFromVision = 0;
-float m_desiredDepthFromVision = 0;
-
-float m_yawFromVisionF = 0;
-float m_pitchFromVisionF = 0;
-float m_rollFromVisionF = 0;
-float m_transXFromVisionF = 0;
-float m_transYFromVisionF = 0;
-float m_transZFromVisionF = 0;
-
-float m_yawFromVisionR = 0;
-float m_pitchFromVisionR = 0;
-float m_rollFromVisionR = 0;
-float m_transXFromVisionR = 0;
-float m_transYFromVisionR = 0;
-float m_transZFromVisionR = 0;
+float m_yawOfAprilTag = 0;
+float m_depthOfAprilTag = 0;
+float m_yawOfBeacon = 0;
+float m_depthOfBeacon = 0;
 
 float directInputArray[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
@@ -543,46 +524,14 @@ void receiveSerial() {
         m_desiredDepth = input;
       } else if (strcmp(commandType, "cmdTrans") == 0) {
         m_translationError = input;
-      } else if (strcmp(commandType, "visYawB") == 0) {
-        m_yawFromVisionB = input;
-      } else if (strcmp(commandType, "visRollB") == 0) {
-        m_rollFromVisionB = input;
-      } else if (strcmp(commandType, "visPitchB") == 0) {
-        m_pitchFromVisionB = input;
-      } else if (strcmp(commandType, "visXB") == 0) {
-        m_transXFromVisionB = input;
-      } else if (strcmp(commandType, "visYB") == 0) {
-        m_transYFromVisionB = input;
-      } else if (strcmp(commandType, "visZB") == 0) {
-        m_transZFromVisionB = input;
-      } else if (strcmp(commandType, "visAngleF") == 0) {
-        m_desiredAngleFromVision = input; 
-      } else if (strcmp(commandType, "visDepthF") == 0) {
-        m_desiredDepthFromVision = input;
-//      } else if (strcmp(commandType, "visYawF") == 0) {
-//        m_yawFromVisionF = input;
-//      } else if (strcmp(commandType, "visRollF") == 0) {
-//        m_rollFromVisionF = input;
-//      } else if (strcmp(commandType, "visPitchF") == 0) {
-//        m_pitchFromVisionF = input;
-//      } else if (strcmp(commandType, "visXF") == 0) {
-//        m_transXFromVisionF = input;
-//      } else if (strcmp(commandType, "visYF") == 0) {
-//        m_transYFromVisionF = input;
-//      } else if (strcmp(commandType, "visZF") == 0) {
-//        m_transZFromVisionF = input;
-//      } else if (strcmp(commandType, "visYawR") == 0) {
-//        m_yawFromVisionR = input;
-//      } else if (strcmp(commandType, "visRollR") == 0) {
-//        m_rollFromVisionR = input;
-//      } else if (strcmp(commandType, "visPitchR") == 0) {
-//        m_pitchFromVisionR = input;
-//      } else if (strcmp(commandType, "visXR") == 0) {
-//        m_transXFromVisionR = input;
-//      } else if (strcmp(commandType, "visYR") == 0) {
-//        m_transYFromVisionR = input;
-//      } else if (strcmp(commandType, "visZR") == 0) {
-//        m_transZFromVisionR = input;
+      } else if (strcmp(commandType, "tagYaw") == 0) {
+        m_yawOfAprilTag = input; // absolute with reference to the pool
+      } else if (strcmp(commandType, "tagDepth") == 0) {
+        m_depthOfAprilTag = input; // absolute with reference to the pool
+      } else if (strcmp(commandType, "beaconYaw") == 0) {
+        m_yawOfBeacon = input; 
+      } else if (strcmp(commandType, "beaconDepth") == 0) {
+        m_depthOfBeacon = input;
       } else if (strcmp(commandType, "setAllMotors") == 0) {
         directInputArray[0] = input;
         directInputArray[1] = input;
