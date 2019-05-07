@@ -435,11 +435,11 @@ void translate() {
 bool wreckageFound = false;
 
 void findWreckage() {
-  wreckageFound = m_desiredAngleFromVision != 0 && m_desiredDepthFromVision != 0;
+  wreckageFound = m_beaconYaw != 0 && m_beaconDepth != 0;
     
   if (wreckageFound) {
-    m_desiredYaw = m_yawOfBeacon;
-    m_desiredDepth = m_depthOfBeacon + 3; // tune this for vertical offset we want from the wreckage as we approach
+    m_desiredYaw = m_beaconYaw;
+    m_desiredDepth = m_beaconDepth + 3; // tune this for vertical offset we want from the wreckage as we approach
     m_translationControlOutput = 0.3; // tune this for how fast we translate once we're locked on
   } else {
     m_desiredYaw += 0.5; // tune this for how fast you turn to search for the target
@@ -460,11 +460,14 @@ bool lateralAligned;
 bool longitudinalAligned;
 
 void alignWithTarget() {
-  targetFound = m_yawOfAprilTag != 0;
+  targetFound = m_aprilTagYaw != 0;
 
   if (targetFound) {
-    lateralAligned = 
-    m_desiredDepth = m_depthOfAprilTag + 3; // tune this for vertical ofset we want from the apriltag as we attempt to align
+    lateralAligned = abs((m_aprilTagYaw - m_measuredYaw) - 90) < 3 && abs(m_aprilTagYOffset) < 3; // tune these for how accurate we want alignment process to be
+    longitudinalAligned = abs((m_aprilTagYaw - measuredYaw) - 0) < 3 && abs(m_aprilTagXOffset) < 3;
+    
+    m_desiredDepth = m_aprilTagDepth + 3; // tune this for vertical ofset we want from the apriltag as we attempt to align
+    m_desiredYaw = m_measuredYaw;
     if (stateDepthReached) {
       
     }
