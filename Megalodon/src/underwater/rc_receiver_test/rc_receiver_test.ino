@@ -143,12 +143,12 @@ void loop() {
 //    Serial.print(RC.getChannel(i)); Serial.print("\t");
 //  } Serial.println(RC.getChannel(TOCHANNELPIN));
 
-  for (uint8_t i = FROMCHANNELPIN; i < TOCHANNELPIN; i++) { 
+//  for (uint8_t i = FROMCHANNELPIN; i < TOCHANNELPIN; i++) { 
     Serial.print("Channel ");
-    Serial.print(i);
+    Serial.print(2);
     Serial.print(": ");
     Serial.println(RC.getChannel(i));
-  }
+//  }
   Serial.println("");
 
   //Wait till the refreshrate is expiered
