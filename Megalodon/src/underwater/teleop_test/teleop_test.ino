@@ -76,12 +76,28 @@ float updateStateEstimation() {
   m_measuredYaw = euler.x();
   m_measuredRoll = euler.y();
   m_measuredPitch = euler.z();
+
+
+  // limited to +/- 360
+  m_measuredYaw = 360 - m_measuredYaw;
+  m_measuredYaw = fmod(m_measuredYaw, 360);
+  m_measuredPitch = 360 - m_measuredPitch;
+  m_measuredPitch = fmod(m_measuredPitch, 360);
+  m_measuredRoll = 360 - m_measuredRoll;
+  m_measuredRoll = fmod(m_measuredRoll, 360);
 }
 
 float stabilize() {
   m_yawError = m_desiredYaw - m_measuredYaw;
   m_rollError = m_desiredRoll - m_measuredRoll;
   m_pitchError = m_desiredPitch - m_measuredPitch;
+
+  m_yawError = (m_yawError > 180) ? m_yawError - 360 : m_yawError;
+  m_yawError = (m_yawError < -180) ? m_yawError + 360 : m_yawError;
+  m_pitchError = (m_pitchError > 180) ? m_pitchError - 360 : m_pitchError;
+  m_pitchError = (m_pitchError < 180) ? m_pitchError + 360 : m_pitchError;
+  m_rollError = (m_rollError > 180) ? m_rollError - 360 : m_rollError;
+  m_rollError = (m_rollError < 180) ? m_rollError - 360 : m_rollError;
   
   m_yawControlOutput = kYawP * m_yawError;
   m_rollControlOutput = kRollP * m_rollError;
@@ -142,6 +158,7 @@ void setup() {
 
 
 void loop() {
+  updateStateEstimation();
   calculateThrottles();
   runMotors();
 
