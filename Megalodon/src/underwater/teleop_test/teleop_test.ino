@@ -139,9 +139,50 @@ void runMotors() {
   verticalRightBackMotor.writeMicroseconds(throttleToMicroseconds(verticalRightBackThrottle));
 }
 
+void displayStates() {
+  Serial.print("Measured Yaw: ");
+  Serial.println(m_measuredYaw);
+  Serial.print("Measured Roll: ");
+  Serial.println(m_measuredRoll);
+  Serial.print("Measured Pitch: ");
+  Serial.println(m_measuredPitch);
+
+  Serial.print("Desired Yaw: ");
+  Serial.println(m_desiredYaw);
+  Serial.print("Desired Roll: ");
+  Serial.println(m_desireddRoll);
+  Serial.print("Desired Pitch: ");
+  Serial.println(m_desiredPitch);
+}
+
+void displayInputs() {
+  Serial.print("RC Receiver Channel 1: ");
+  Serial.println(RC.getChannel(1));
+  Serial.print("RC Receiver Channel 2: ");
+  Serial.println(RC.getChannel(2));
+  Serial.print("RC Receiver Channel 3: ");
+  Serial.println(RC.getChannel(3));
+}
+
+void displayOutputs() {
+  Serial.print("Horizontal Left Throttle: " );
+  Serial.println(horizontalLeftThrottle);
+  Serial.print("Horizontal Right Throttle: " );
+  Serial.println(horizontalRightThrottle);
+  
+  Serial.print("Vertical Left Front Throttle: " );
+  Serial.println(verticalLeftFrontThrottle);
+  Serial.print("Vertical Left Back Throttle: " );
+  Serial.println(verticalLeftBackThrottle);
+  Serial.print("Vertical Right Front Throttle: " );
+  Serial.println(verticalRightFrontThrottle);
+  Serial.print("Vertical Right Back Throttle: " );
+  Serial.println(verticalRightBackThrottle);
+}
+
 void setup() {
   //Initalise the Serial communication and the RC RX Reader
-//  Serial.begin(115200);
+  Serial.begin(115200);
   initializeMotors();
   initializeIMU();
   
@@ -156,11 +197,14 @@ void setup() {
   RC.setMap(channel3_min, channel3_max, 3);
 }
 
-
 void loop() {
   updateStateEstimation();
   calculateThrottles();
   runMotors();
+  
+  displayStates();
+  displayInputs();
+  displayOutputs();
 
   //Wait till the refreshrate is expiered
   unsigned long waitSince = millis();
