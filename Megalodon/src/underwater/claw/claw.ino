@@ -5,7 +5,8 @@ Servo servo1;
 #define INPUT_SIZE 30
 
 bool open = false;
-int pos = 0;
+int pos1 = 0;
+int pos2 = 0;
 
 void receiveSerial() {
   // Get next command from Serial (add 1 for final 0)
@@ -28,8 +29,10 @@ void receiveSerial() {
       ++separator;
       float input = atof(separator);
 
-      if (strcmp(commandType, "open") == 0) {
-        pos = input;
+      if (strcmp(commandType, "claw1") == 0) {
+        pos1 = input;
+      } else if (strcmp(commandType, "claw2") == 0) {
+        pos2 = input;
       }
     }
     // Find the next command in input string
@@ -58,7 +61,7 @@ void loop() {
 
   receiveSerial();
   Serial.println(servo1.read());
-  servo1.write(pos); // 100 and 65
+  servo1.write(pos1); // 100 and 65
   
 //  if (open) {
 //    servo1.write(180);
