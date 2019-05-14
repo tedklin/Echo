@@ -44,10 +44,6 @@ const float kDepthThreshold = 5;
 
 float universalMaxPower = 0.7;
 
-int m_inputThrottle;
-int m_inputLeftSwitch;
-int m_inputRightSwitch;
-
 // ======================================================================================= //
 //                                                                        END OF CONSTANTS //
 // ======================================================================================= //
@@ -152,7 +148,7 @@ void limitOrientationMeasurements() {
 
 void updateBarometer() {
   m_barometer.read();
-  m_measuredDepth = m_barometer.depth() / 3.28084;
+  m_measuredDepth = m_barometer.depth() / 3.28084; // convert from meters to feet
   m_measuredAltitude = m_barometer.altitude() / 3.28084;
   m_measuredPressure = m_barometer.pressure();
   m_measuredTemperature = m_barometer.temperature();
@@ -322,12 +318,6 @@ float microsecondsToThrottle(float microseconds) {
   return input;
 }
 
-void rcReceive() {
-  m_inputThrottle = microsecondsToThrottle(pulseIn(2, HIGH, 25000));
-  m_inputLeftSwitch = microsecondsToThrottle(pulseIn(4, HIGH, 25000));
-  m_inputRightSwitch = microsecondsToThrottle(pulseIn(7, HIGH, 25000));
-}
-
 /**
  * Direct motor control
  */
@@ -338,13 +328,6 @@ void directMotorControl() {
   m_verticalFrontRightPower = directInputArray[3];
   m_verticalBackLeftPower = directInputArray[4];
   m_verticalBackRightPower = directInputArray[5];
-
-//  m_horizontalLeftPower = 0;
-//  m_horizontalRightPower = 0;
-//  m_verticalFrontLeftPower = 0;
-//  m_verticalFrontRightPower = 0;
-//  m_verticalBackLeftPower = 0;
-//  m_verticalBackRightPower = 0;
 }
 
 /**
@@ -382,19 +365,12 @@ void stopAll() {
  * Actuate motors
  */
 void runMotors() {
-//  m_horizontalLeftMotor.writeMicroseconds(throttleToMicroseconds(-m_horizontalLeftPower));
-//  m_horizontalRightMotor.writeMicroseconds(throttleToMicroseconds(m_horizontalRightPower));
-//  m_verticalFrontLeftMotor.writeMicroseconds(throttleToMicroseconds(-m_verticalFrontLeftPower));
-//  m_verticalFrontRightMotor.writeMicroseconds(throttleToMicroseconds(m_verticalFrontRightPower));
-//  m_verticalBackLeftMotor.writeMicroseconds(throttleToMicroseconds(m_verticalBackLeftPower));
-//  m_verticalBackRightMotor.writeMicroseconds(throttleToMicroseconds(-m_verticalBackRightPower));
-  
-  m_horizontalLeftMotor.writeMicroseconds(0);
-  m_horizontalRightMotor.writeMicroseconds(0);
-  m_verticalFrontLeftMotor.writeMicroseconds(ch1);
-  m_verticalFrontRightMotor.writeMicroseconds(ch1);
-  m_verticalBackLeftMotor.writeMicroseconds(ch1);
-  m_verticalBackRightMotor.writeMicroseconds(ch1);
+  m_horizontalLeftMotor.writeMicroseconds(throttleToMicroseconds(-m_horizontalLeftPower));
+  m_horizontalRightMotor.writeMicroseconds(throttleToMicroseconds(m_horizontalRightPower));
+  m_verticalFrontLeftMotor.writeMicroseconds(throttleToMicroseconds(m_verticalFrontLeftPower));
+  m_verticalFrontRightMotor.writeMicroseconds(throttleToMicroseconds(m_verticalFrontRightPower));
+  m_verticalBackLeftMotor.writeMicroseconds(throttleToMicroseconds(m_verticalBackLeftPower));
+  m_verticalBackRightMotor.writeMicroseconds(throttleToMicroseconds(m_verticalBackRightPower));
 }
 
 // ======================================================================================= //
@@ -454,47 +430,49 @@ void translate() {
   }
 }
 
-//bool wreckageFound = false;
-//
-//void findWreckage() {
-//  wreckageFound = m_beaconYaw != 0 && m_beaconDepth != 0;
-//    
-//  if (wreckageFound) {
-//    m_desiredYaw = m_beaconYaw;
-//    m_desiredDepth = m_beaconDepth + 3; // tune this for vertical offset we want from the wreckage as we approach
-//    m_translationControlOutput = 0.3; // tune this for how fast we translate once we're locked on
-//  } else {
-//    m_desiredYaw += 0.5; // tune this for how fast you turn to search for the target
-//    m_desiredYaw = fmod((360.0 - m_desiredYaw), 360.0);
-//    
-//    m_desiredDepth = 2; // tune this for what depth you want to be at when you search for wreckage
-//    m_translationControlOutput = 0;
-//  }
-//
-//  stabilize();
-//  rotate();
-//  goToDepth();
-//  translate();
-//}
-//
-//bool targetFound;
-//bool lateralAligned;
-//bool longitudinalAligned;
-//
-//void alignWithTarget() {
-//  targetFound = m_aprilTagYaw != 0;
-//
-//  if (targetFound) {
-//    lateralAligned = abs((m_aprilTagYaw - m_measuredYaw) - 90) < 3 && abs(m_aprilTagYOffset) < 3; // tune these for how accurate we want alignment process to be
-//    longitudinalAligned = abs((m_aprilTagYaw - measuredYaw) - 0) < 3 && abs(m_aprilTagXOffset) < 3;
-//    
-//    m_desiredDepth = m_aprilTagDepth + 3; // tune this for vertical ofset we want from the apriltag as we attempt to align
-//    m_desiredYaw = m_measuredYaw;
-//    if (stateDepthReached) {
-//      
-//    }
-//  }
-//}
+bool wreckageFound = false;
+
+void findWreckage() {
+  wreckageFound = m_beaconYaw != 0 && m_beaconDepth != 0;
+    
+  if (wreckageFound) {
+    m_desiredYaw = m_beaconYaw;
+    m_desiredDepth = m_beaconDepth + 3; // tune this for vertical offset we want from the wreckage as we approach
+    m_translationControlOutput = 0.3; // tune this for how fast we translate once we're locked on
+  } else {
+    m_desiredYaw += 0.5; // tune this for how fast you turn to search for the target
+    m_desiredYaw = fmod((360.0 - m_desiredYaw), 360.0);
+    
+    m_desiredDepth = 2; // tune this for what depth you want to be at when you search for wreckage
+    m_translationControlOutput = 0;
+  }
+
+  stabilize();
+  rotate();
+  goToDepth();
+  translate();
+}
+
+bool targetFound;
+bool lateralAligned;
+bool longitudinalAligned;
+
+void alignWithTarget() {
+  targetFound = m_aprilTagYaw != 0;
+
+  if (targetFound) {
+    lateralAligned = abs((m_aprilTagYaw - 90) - measuredYaw) < 3 && abs(m_aprilTagYOffset) < 3; // tune these for how accurate we want alignment process to be
+    longitudinalAligned = abs((m_aprilTagYaw - measuredYaw) - 0) < 3 && abs(m_aprilTagXOffset) < 3;
+    
+    m_desiredDepth = m_aprilTagDepth + 3; // tune this for vertical ofset we want from the apriltag as we attempt to align
+    m_desiredYaw = m_measuredYaw;
+    if (isDepthReached(m_desiredDepth)) {
+      if (lateralAligned) {
+        
+      }
+    }
+  }
+}
 
 // ======================================================================================= //
 //                                                                     END OF AUTO METHODS //
@@ -684,9 +662,7 @@ void setup() {
   Serial.begin(9600);
 
   instantiateMotors();
-
-  pinMode(2, INPUT); // Set our input pins as such
-//  instantiateIMU();
+  instantiateIMU();
 //  instantiateBarometer();
 
   m_startTime = millis();
@@ -703,27 +679,26 @@ void loop() {
 //  receiveSerial();
 //  simulate();
 
-//  updateStateEstimation();
-//  calculateControlOutputs();
+  updateStateEstimation();
+  calculateControlOutputs();
   
 //  displayStatesToSerial();
 
-//  long m_totalTimeElapsed = timestamp % 40000;
-//  if (m_totalTimeElapsed < 10000) {
-//    m_desiredYaw = -90;
-//  } else if (m_totalTimeElapsed > 10000 && m_totalTimeElapsed < 20000) {
-//    m_desiredYaw = 0;
-//  } else if (m_totalTimeElapsed > 20000 && m_totalTimeElapsed < 30000) {
-//    m_desiredYaw = 90;
-//  } else if (m_totalTimeElapsed > 30000) {
-//    m_desiredYaw = 0;
-//  }
-//
-//  rotate();
+  long m_totalTimeElapsed = timestamp % 40000;
+  if (m_totalTimeElapsed < 10000) {
+    m_desiredYaw = -90;
+  } else if (m_totalTimeElapsed > 10000 && m_totalTimeElapsed < 20000) {
+    m_desiredYaw = 0;
+  } else if (m_totalTimeElapsed > 20000 && m_totalTimeElapsed < 30000) {
+    m_desiredYaw = 90;
+  } else if (m_totalTimeElapsed > 30000) {
+    m_desiredYaw = 0;
+  }
 
-  rcReceive();
+  rotate();
+
 //  directMotorControl(); // direct serial input to motors
-//  autonomousControl();  // autonomous update input to motors
+  autonomousControl();  // autonomous update input to motors
   runMotors(); // actuate motors
 
 //  sendSerial();
