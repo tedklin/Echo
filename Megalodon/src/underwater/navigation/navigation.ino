@@ -461,8 +461,8 @@ void alignWithTarget() {
   targetFound = m_aprilTagYaw != 0;
 
   if (targetFound) {
-    lateralAligned = abs((m_aprilTagYaw - 90) - measuredYaw) < 3 && abs(m_aprilTagYOffset) < 3; // tune these for how accurate we want alignment process to be
-    longitudinalAligned = abs((m_aprilTagYaw - measuredYaw) - 0) < 3 && abs(m_aprilTagXOffset) < 3;
+    lateralAligned = abs((m_aprilTagYaw - 90) - m_measuredYaw) < 3 && abs(m_aprilTagYOffset) < 3; // tune these for how accurate we want alignment process to be
+    longitudinalAligned = abs((m_aprilTagYaw - m_measuredYaw) - 0) < 3 && abs(m_aprilTagXOffset) < 3;
     
     m_desiredDepth = m_aprilTagDepth + 3; // tune this for vertical ofset we want from the apriltag as we attempt to align
     m_desiredYaw = m_measuredYaw;
