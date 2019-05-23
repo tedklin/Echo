@@ -81,7 +81,7 @@ void instantiateMotors() {
 void instantiateIMU() {
   Serial.println("IMU INSTANTIATING");
   
-  m_imu = Adafruit_BNO055();
+  m_imu = Adafruit_BNO055(55);
   while(!m_imu.begin())
   {
     Serial.println("IMU INIT FAILED");
@@ -381,98 +381,117 @@ void runMotors() {
 //                                                                   START OF AUTO METHODS //
 // ======================================================================================= //
 
-bool stateStabilized = false;
-bool stateRotated = false;
-bool stateDepthReached = false;
-
-void stabilize() {
-  m_desiredRoll = 0;
-  m_desiredPitch = 0;
-
-  stateStabilized = isRollAligned(m_desiredRoll) && isPitchAligned(m_desiredPitch);
-  
-  if (!isRollAligned(m_desiredRoll)) {
-    m_pitchControlOutput = 0;
-  }
-}
-
-/**
- * Limit control outputs in effect
- */
-void rotate() {
-  stateRotated = isYawAligned(m_desiredYaw);
-
-  if (!stateStabilized) {
-    m_yawControlOutput = 0;
-  }
-}
-
-/**
- * Go to depth
- */
-void goToDepth() {
-  stateDepthReached = isDepthReached(m_desiredDepth);
-
-  if (!stateStabilized || !stateRotated) {
-    m_depthControlOutput = 0;
-  }
-}
-
-/**
- * Translate to based on error input (m_translationError) given rotation is aligned
- */
-void translate() {
-  if (!stateStabilized || !stateRotated || !stateDepthReached) {
-    m_translationControlOutput = 0;
-    m_yawRateControlOutput = 0;
-    m_rollRateControlOutput = 0;
-    m_pitchRateControlOutput = 0;
-  }
-}
-
-bool wreckageFound = false;
-
-void findWreckage() {
-  wreckageFound = m_beaconYaw != 0 && m_beaconDepth != 0;
-    
-  if (wreckageFound) {
-    m_desiredYaw = m_beaconYaw;
-    m_desiredDepth = m_beaconDepth + 3; // tune this for vertical offset we want from the wreckage as we approach
-    m_translationControlOutput = 0.3; // tune this for how fast we translate once we're locked on
-  } else {
-    m_desiredYaw += 0.5; // tune this for how fast you turn to search for the target
-    m_desiredYaw = fmod((360.0 - m_desiredYaw), 360.0);
-    
-    m_desiredDepth = 2; // tune this for what depth you want to be at when you search for wreckage
-    m_translationControlOutput = 0;
-  }
-
-  stabilize();
-  rotate();
-  goToDepth();
-  translate();
-}
-
-bool targetFound;
-bool lateralAligned;
-bool longitudinalAligned;
-
-void alignWithTarget() {
-  targetFound = m_aprilTagYaw != 0;
-
-  if (targetFound) {
-    lateralAligned = abs((m_aprilTagYaw - 90) - m_measuredYaw) < 3 && abs(m_aprilTagYOffset) < 3; // tune these for how accurate we want alignment process to be
-    longitudinalAligned = abs((m_aprilTagYaw - m_measuredYaw) - 0) < 3 && abs(m_aprilTagXOffset) < 3;
-    
-    m_desiredDepth = m_aprilTagDepth + 3; // tune this for vertical ofset we want from the apriltag as we attempt to align
-    m_desiredYaw = m_measuredYaw;
-    if (isDepthReached(m_desiredDepth)) {
-      if (lateralAligned) {
-        
-      }
-    }
-  }
-}
+//bool stateStabilized = false;
+//bool stateRotated = false;
+//bool stateDepthReached = false;
+//
+//void stabilize() {
+//  m_desiredRoll = 0;
+//  m_desiredPitch = 0;
+//
+//  stateStabilized = isRollAligned(m_desiredRoll) && isPitchAligned(m_desiredPitch);
+//
+//  if (!isRollAligned(m_desiredRoll)) {
+//    m_pitchControlOutput = 0;
+//  }
+//}
+//
+///**
+// * Limit control outputs in effect
+// */
+//void rotate() {
+//  stateRotated = isYawAligned(m_desiredYaw);
+//
+//  if (!stateStabilized) {
+//    m_yawControlOutput = 0;
+//  }
+//}
+//
+///**
+// * Go to depth
+// */
+//void goToDepth() {
+//  stateDepthReached = isDepthReached(m_desiredDepth);
+//
+//  if (!stateStabilized || !stateRotated) {
+//    m_depthControlOutput = 0;
+//  }
+//}
+//
+///**
+// * Translate to based on error input (m_translationError) given rotation is aligned
+// */
+//void translate() {
+//  if (!stateStabilized || !stateRotated || !stateDepthReached) {
+//    m_translationControlOutput = 0;
+//    m_yawRateControlOutput = 0;
+//    m_rollRateControlOutput = 0;
+//    m_pitchRateControlOutput = 0;
+//  }
+//}
+//
+//bool wreckageFound = false;
+//
+//void findWreckage() {
+//  wreckageFound = m_beaconYaw != 0 && m_beaconDepth != 0;
+//
+//  if (wreckageFound) {
+//    m_desiredYaw = m_beaconYaw;
+//    m_desiredDepth = m_beaconDepth + 3; // tune this for vertical offset we want from the wreckage as we approach
+//    m_translationControlOutput = 0.3; // tune this for how fast we translate once we're locked on
+//  } else {
+//    m_desiredYaw += 0.5; // tune this for how fast you turn to search for the target
+//    m_desiredYaw = fmod((360.0 - m_desiredYaw), 360.0);
+//
+//    m_desiredDepth = 2; // tune this for what depth you want to be at when you search for wreckage
+//    m_translationControlOutput = 0;
+//  }
+//
+//  stabilize();
+//  rotate();
+//  goToDepth();
+//  translate();
+//}
+//
+//bool targetFound;
+//bool lateralAligned;
+//bool longitudinalAligned;
+//bool lateralAligned = false;
+//
+//void alignWithTarget() {
+//  targetFound = m_aprilTagYaw != 0;
+//
+//  if (targetFound) {
+////    lateralAligned = abs((m_aprilTagYaw - 90) - m_measuredYaw) < 3 && abs(m_aprilTagYOffset) < 3; // tune these for how accurate we want alignment process to be
+////    longitudinalAligned = abs((ms_aprilTagYaw - m_measuredYaw) - 0) < 3 && abs(m_aprilTagXOffset) < 3;
+//
+//    // we use the next two values as both control outputs and state indicators
+//
+//    // this calculates the the y intercept of the line that represents the extension of the vessel we're trying to pick up
+//    float lateralError = (tan(m_measuredYaw * DEG_TO_RAD) * (-m_aprilTagXOffset)) - m_aprilTagYOffset;
+//
+//    // this is the longitudinal error where we assume that the robot is aligned with the target
+//    float longitudinalError = m_aprilTagYOffset;
+//
+//    lateralAligned = abs(lateralError) <
+//
+//    m_desiredDepth = m_aprilTagDepth + 3; // tune this for vertical ofset we want from the apriltag as we attempt to align
+//    m_desiredYaw = m_measuredYaw;
+//    if (isDepthReached(m_desiredDepth)) {
+//
+//    } else {
+//
+//    }
+//    rotate();
+//    translate();
+//    stabilize();
+//  }
+//}
+//
+//float isLateralAligned() {
+//  float y = tan(m_measuredYaw)  * (-cx) - cy;
+//  return y;
+//}
 
 // ======================================================================================= //
 //                                                                     END OF AUTO METHODS //
@@ -661,9 +680,9 @@ void simulate() {
 void setup() {
   Serial.begin(9600);
 
-  instantiateMotors();
+//  instantiateMotors();
   instantiateIMU();
-//  instantiateBarometer();
+  instantiateBarometer();
 
   m_startTime = millis();
   m_previousTime = millis();
@@ -680,9 +699,9 @@ void loop() {
 //  simulate();
 
   updateStateEstimation();
-  calculateControlOutputs();
+//  calculateControlOutputs();
   
-//  displayStatesToSerial();
+  displayStatesToSerial();
 
   long m_totalTimeElapsed = timestamp % 40000;
   if (m_totalTimeElapsed < 10000) {
@@ -695,11 +714,11 @@ void loop() {
     m_desiredYaw = 0;
   }
 
-  rotate();
+//  rotate();
 
 //  directMotorControl(); // direct serial input to motors
-  autonomousControl();  // autonomous update input to motors
-  runMotors(); // actuate motors
+//  autonomousControl();  // autonomous update input to motors
+//  runMotors(); // actuate motors
 
 //  sendSerial();
 
