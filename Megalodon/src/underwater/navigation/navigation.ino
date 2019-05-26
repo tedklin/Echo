@@ -49,8 +49,6 @@ const float kPitchThreshold = 10;
 const float kRollThreshold = 10;
 const float kDepthThreshold = 5;
 
-float universalMaxPower = 0.7;
-
 // ======================================================================================= //
 //                                                                        END OF CONSTANTS //
 // ======================================================================================= //
@@ -224,14 +222,6 @@ float m_lastYawError = 0;
 float m_lastRollError = 0;
 float m_lastPitchError = 0;
 
-float m_targetYaw = 0;
-float m_targetYIntercept = 0;
-float m_targetXOffset = 0;
-float m_targetYOffset = 0;
-
-float m_beaconYaw = 0;
-float m_beaconDepth = 0;
-
 float directInputArray[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
 /**
@@ -261,6 +251,7 @@ void calculateControlOutputs() {
     m_yawControlOutput = -0.2;
   }
 //  m_yawControlOutput *= abs(m_yawControlOutput);
+
   m_pitchControlOutput = kPitchP * m_pitchError;
   if (m_pitchControlOutput > 0.2) {
     m_pitchControlOutput = 0.2;
@@ -287,6 +278,9 @@ void calculateControlOutputs() {
   m_translationControlOutput = kTranslationP * m_translationError;
 }
 
+/**
+ * @param yawToCompare
+ */
 bool isYawAligned(float yawToCompare) {
   float error = yawToCompare - m_measuredYaw;
   error = (error > 180) ? error - 360 : error;
@@ -294,6 +288,9 @@ bool isYawAligned(float yawToCompare) {
   return abs(error) < kYawThreshold;
 }
 
+/**
+ * @param pitchToCompare
+ */
 bool isPitchAligned(float pitchToCompare) {
   float error = pitchToCompare - m_measuredPitch;
   error = (error > 180) ? error - 360 : error;
@@ -301,6 +298,9 @@ bool isPitchAligned(float pitchToCompare) {
   return abs(error) < kPitchThreshold;
 }
 
+/**
+ * @param rollToCompare
+ */
 bool isRollAligned(float rollToCompare) {
   float error = rollToCompare - m_measuredRoll;
   error = (error > 180) ? error - 360 : error;
@@ -308,6 +308,11 @@ bool isRollAligned(float rollToCompare) {
   return abs(error) < kRollThreshold;
 }
 
+/**
+ * @param measuredAngle
+ * @param desiredAngle
+ * @param threshold
+ */
 bool isAngleAligned(float measuredAngle, float desiredAngle, float threshold) {
   float error = desiredAngle - measuredAngle;
   error = (error > 180) ? error - 360 : error;
@@ -315,6 +320,9 @@ bool isAngleAligned(float measuredAngle, float desiredAngle, float threshold) {
   return abs(error) < threshold;
 }
 
+/**
+ * @param depthToCompare
+ */
 bool isDepthReached(float depthToCompare) {
   float error = depthToCompare - m_measuredDepth;
   return abs(error) < kDepthThreshold;
@@ -330,15 +338,14 @@ float throttleToMicroseconds(float throttle) {
   } else if (throttle < -0.5) {
     throttle = -0.5;
   }
-//  if (throttle > universalMaxPower) {
-//    throttle = universalMaxPower;
-//  } else if (throttle < -universalMaxPower) {
-//    throttle = -universalMaxPower;
-//  }
   float input = throttle * 400 + 1500;
   return input;
 }
 
+/**
+ * @param float input (microseconds)
+ * @return float throttle (-1.0 to 1.0)
+ */
 float microsecondsToThrottle(float microseconds) {
   float input = (microseconds - 1500) / 500;
   return input;
@@ -368,23 +375,11 @@ void autonomousControl() {
     rightTranslationOffset = kRightTranslationOffset;
   }
   m_horizontalLeftPower = m_yawControlOutput + m_translationControlOutput;
-  m_horizontalRightPower = -m_yawControlOutput + m_translationControlOutput * rightTranslationOffset;
-//  m_verticalFrontLeftPower = 0;
-//  m_verticalFrontRightPower = 0;
-//  m_verticalBackLeftPower = 0;
-//  m_verticalBackRightPower = 0;
-
-//  m_horizontalLeftPower = 0;
-//  m_horizontalRightPower = 0;
-//  m_verticalFrontLeftPower = -m_rollControlOutput + m_pitchControlOutput + m_depthControlOutput + kMaintainDepth;
-//  m_verticalFrontRightPower = m_rollControlOutput + m_pitchControlOutput + m_depthControlOutput + kMaintainDepth;
-//  m_verticalBackLeftPower = -m_rollControlOutput - m_pitchControlOutput + m_depthControlOutput + kMaintainDepth;
-//  m_verticalBackRightPower = m_rollControlOutput - m_pitchControlOutput + m_depthControlOutput + kMaintainDepth;
-
-  m_verticalFrontLeftPower = -m_rollControlOutput + m_pitchControlOutput + kMaintainDepth;
-  m_verticalFrontRightPower = m_rollControlOutput + m_pitchControlOutput + kMaintainDepth;
-  m_verticalBackLeftPower = -m_rollControlOutput - m_pitchControlOutput + kMaintainDepth;
-  m_verticalBackRightPower = m_rollControlOutput - m_pitchControlOutput + kMaintainDepth;
+  m_horizontalRightPower = -m_yawControlOutput + m_translationControlOutput * rightTranslationOffset; // left prop broke
+  m_verticalFrontLeftPower = -m_rollControlOutput + m_pitchControlOutput + m_depthControlOutput + kMaintainDepth;
+  m_verticalFrontRightPower = m_rollControlOutput + m_pitchControlOutput + m_depthControlOutput + kMaintainDepth;
+  m_verticalBackLeftPower = -m_rollControlOutput - m_pitchControlOutput + m_depthControlOutput + kMaintainDepth;
+  m_verticalBackRightPower = m_rollControlOutput - m_pitchControlOutput + m_depthControlOutput + kMaintainDepth;
 }
 
 /**
@@ -462,77 +457,83 @@ void goToDepth() {
  * Translate to based on error input (m_translationError) given rotation is aligned
  */
 void translate() {
-//  if (!stateStabilized || !stateRotated || !stateDepthReached) {
-  if (!stateStabilized) {
+  if (!stateStabilized || !stateRotated || !stateDepthReached) {
     m_translationControlOutput = 0;
     m_yawRateControlOutput = 0;
     m_rollRateControlOutput = 0;
     m_pitchRateControlOutput = 0;
   }
 }
-//
-//bool wreckageFound = false;
-//
-//void findWreckage() {
-//  wreckageFound = m_beaconYaw != 0 && m_beaconDepth != 0;
-//
-//  if (wreckageFound) {
-//    m_desiredYaw = m_beaconYaw;
-//    m_desiredDepth = m_beaconDepth + 3; // tune this for vertical offset we want from the wreckage as we approach
-//    m_translationControlOutput = 0.3; // tune this for how fast we translate once we're locked on
-//  } else {
-//    m_desiredYaw += 0.5; // tune this for how fast you turn to search for the target
-//    m_desiredYaw = fmod((360.0 - m_desiredYaw), 360.0);
-//
-//    m_desiredDepth = 2; // tune this for what depth you want to be at when you search for wreckage
-//    m_translationControlOutput = 0;
-//  }
-//
-//  stabilize();
-//  rotate();
-//  goToDepth();
-//  translate();
-//}
-//
-//bool targetFound;
-//bool lateralAligned;
-//bool longitudinalAligned;
-//bool lateralAligned = false;
-//
-//void alignWithTarget() {
-//  targetFound = m_aprilTagYaw != 0;
-//
-//  if (targetFound) {
-////    lateralAligned = abs((m_aprilTagYaw - 90) - m_measuredYaw) < 3 && abs(m_aprilTagYOffset) < 3; // tune these for how accurate we want alignment process to be
-////    longitudinalAligned = abs((ms_aprilTagYaw - m_measuredYaw) - 0) < 3 && abs(m_aprilTagXOffset) < 3;
-//
-//    // we use the next two values as both control outputs and state indicators
-//
-//    // this calculates the the y intercept of the line that represents the extension of the vessel we're trying to pick up
-//    float lateralError = (tan(m_measuredYaw * DEG_TO_RAD) * (-m_aprilTagXOffset)) - m_aprilTagYOffset;
-//
-//    // this is the longitudinal error where we assume that the robot is aligned with the target
-//    float longitudinalError = m_aprilTagYOffset;
-//
-//    lateralAligned = abs(lateralError) <
-//
-//    m_desiredDepth = m_aprilTagDepth + 3; // tune this for vertical ofset we want from the apriltag as we attempt to align
-//    m_desiredYaw = m_measuredYaw;
-//    if (isDepthReached(m_desiredDepth)) {
-//
-//    } else {
-//
-//    }
-//    rotate();
-//    translate();
-//    stabilize();
-//  }
-//}
-//
-//float isLateralAligned() {
-//  float y = tan(m_measuredYaw)  * (-cx) - cy;
-//  return y;
-//}
+
+float m_targetYaw = 0; // this is absolute (we add robot's angle at time when frame was taken to vision output in the vision algorithm)
+float m_targetYIntercept = 0; // y-intercept of line that's parallel with long edge of target and has center of target as a point
+float m_targetXOffset = 0;
+float m_targetYOffset = 0;
+
+float m_beaconYaw = 0;
+float m_beaconDepth = 0;
+bool wreckageFound = false;
+
+void findWreckage() {
+  wreckageFound = m_beaconYaw != 0 && m_beaconDepth != 0;
+
+  if (wreckageFound) {
+    m_desiredYaw = m_beaconYaw;
+    m_desiredDepth = m_beaconDepth + 3; // tune this for vertical offset we want from the wreckage as we approach
+    m_translationControlOutput = 0.3; // tune this for how fast we translate once we're locked on
+  } else {
+    m_desiredYaw += 0.5; // tune this for how fast you turn to search for the target
+    m_desiredYaw = fmod((360.0 - m_desiredYaw), 360.0);
+
+    m_desiredDepth = 2; // tune this for what depth you want to be at when you search for wreckage
+    m_translationControlOutput = 0;
+  }
+
+  stabilize();
+  rotate();
+  goToDepth();
+  translate();
+}
+
+bool targetFound;
+bool lateralAligned = false;
+bool secondStageReached = true;
+bool secondStageYawAligned = false;
+
+const float lateralTolerance = 0.5;
+const float kVisionTranslationP = 0.04;
+
+const float kVisionYawTolerance = 1;
+
+void alignWithTarget() {
+  targetFound = m_aprilTagYaw != 0;
+
+  if (targetFound) {
+    m_desiredDepth = m_aprilTagDepth + 5; // tune this for vertical ofset we want from the apriltag as we attempt to align
+    m_desiredYaw = m_measuredYaw; // deactivate yaw controller
+    if (isDepthReached(m_desiredDepth)) {
+      if (abs(m_targetYIntercept) < lateralTolerance) {
+        lateralAligned = true; // a one-time toggle
+      }
+      if (!lateralAligned) {
+        m_translationControlOutput = kVisionTranslationP * m_targetYIntercept; // hit point where a turn would make us aligned with y-axis
+      } else {
+        m_desiredYaw = m_targetYaw; // the turn that makes us aligned with y-axis
+        secondStageReached = true;
+      }
+      if (secondStageReached) {
+        if (isAngleAligned(m_measuredYaw, m_targetYaw, kVisionYawTolerance) {
+          m_translationControlOutput = kVisionTranslationP * m_targetYOffset;
+        }
+      }
+    }
+    stabilize();
+    rotate();
+    goToDepth();
+    translate();
+  }
+}
+
 
 // ======================================================================================= //
 //                                                                     END OF AUTO METHODS //
@@ -572,6 +573,7 @@ void receiveSerial() {
       ++separator;
       float input = atof(separator);
 
+      // direct commands
       if (strcmp(commandType, "hL") == 0) {
         directInputArray[0] = input;
       } else if (strcmp(commandType, "hR") == 0) {
@@ -594,14 +596,16 @@ void receiveSerial() {
         m_desiredDepth = input;
       } else if (strcmp(commandType, "cmdTrans") == 0) {
         m_translationError = input;
-      } else if (strcmp(commandType, "tagYaw") == 0) {
-        m_targetYaw = input; // absolute with reference to the pool
-      } else if (strcmp(commandType, "tagDepth") == 0) {
-        m_targetYaw = input; // absolute with reference to the pool
+      } 
+      // from vision
+      else if (strcmp(commandType, "tagYaw") == 0) {
+        m_targetYaw = input;
+      } else if (strcmp(commandType, "tagYInt") == 0) {
+        m_targetYIntercept = input;
       } else if (strcmp(commandType, "tagXOffset") == 0) {
-        m_targetYaw = input;
+        m_targetXOffset = input;
       } else if (strcmp(commandType, "tagYOffset") == 0) {
-        m_targetYaw = input;
+        m_targetYOffset = input;
       } else if (strcmp(commandType, "beaconYaw") == 0) {
         m_beaconYaw = input; 
       } else if (strcmp(commandType, "beaconDepth") == 0) {
@@ -627,29 +631,29 @@ void receiveSerial() {
   }
 }
 
-//void sendSerial() {
-//  Serial.print(measured_yaw);
-//  Serial.print("#");
-//  Serial.print(measured_pitch);
-//  Serial.print("#");
-//  Serial.print(measured_roll);
-//}
+void sendSerial() {
+  Serial.print(measured_yaw);
+  Serial.print("#");
+  Serial.print(measured_pitch);
+  Serial.print("#");
+  Serial.print(measured_roll);
+}
 
 void displayStatesToSerial() {
-//  Serial.println("-----------");
-//  Serial.print("hL : ");
-//  Serial.println(m_horizontalLeftPower);
-//  Serial.print("hR : ");
-//  Serial.println(m_horizontalRightPower);
-//  Serial.print("vFL : ");
-//  Serial.println(m_verticalFrontLeftPower);
-//  Serial.print("vFR : ");
-//  Serial.println(m_verticalFrontRightPower);
-//  Serial.print("vBL : ");
-//  Serial.println(m_verticalBackLeftPower);
-//  Serial.print("vBR : ");
-//  Serial.println(m_verticalBackRightPower);
-//  Serial.println("");
+  Serial.println("-----------");
+  Serial.print("hL : ");
+  Serial.println(m_horizontalLeftPower);
+  Serial.print("hR : ");
+  Serial.println(m_horizontalRightPower);
+  Serial.print("vFL : ");
+  Serial.println(m_verticalFrontLeftPower);
+  Serial.print("vFR : ");
+  Serial.println(m_verticalFrontRightPower);
+  Serial.print("vBL : ");
+  Serial.println(m_verticalBackLeftPower);
+  Serial.print("vBR : ");
+  Serial.println(m_verticalBackRightPower);
+  Serial.println("");
 
   Serial.print("Yaw Measured: ");
   Serial.println(m_measuredYaw);
@@ -668,49 +672,33 @@ void displayStatesToSerial() {
   Serial.print("Is roll aligned: ");
   Serial.println(stateRolled);
 
-//  Serial.print("Yaw Desired: ");
-//  Serial.println(m_desiredYaw);
-//  Serial.print("Roll Desired: " );
-//  Serial.println(m_desiredRoll);
-//  Serial.print("Pitch Desired: " );
-//  Serial.println(m_desiredPitch);
-//  Serial.print("Depth Desired: " );
-//  Serial.println(m_desiredDepth);
-//
-//  Serial.print("Yaw Error: ");
-//  Serial.println(m_yawError);
-//  Serial.print("Roll Error: " );
-//  Serial.println(m_rollError);
-//  Serial.print("Pitch Error: " );
-//  Serial.println(m_pitchError);
-//  Serial.print("Depth Error: " );
-//  Serial.println(m_depthError);
-//  
-//  Serial.print("Yaw Control Output: ");
-//  Serial.println(m_yawControlOutput);
-//  Serial.print("Roll Control Output: " );
-//  Serial.println(m_rollControlOutput);
-//  Serial.print("Pitch Control Output: " );
-//  Serial.println(m_pitchControlOutput);
-//  Serial.print("Depth Control Output: " );
-//  Serial.println(m_depthControlOutput);
-//  Serial.println("-----------");
-}
+  Serial.print("Yaw Desired: ");
+  Serial.println(m_desiredYaw);
+  Serial.print("Roll Desired: " );
+  Serial.println(m_desiredRoll);
+  Serial.print("Pitch Desired: " );
+  Serial.println(m_desiredPitch);
+  Serial.print("Depth Desired: " );
+  Serial.println(m_desiredDepth);
 
-void simulate() {
-//  Serial.println("-----------");
-//  Serial.print("Bottom Camera Yaw: ");
-//  Serial.println(m_yawFromVisionB);
-//  Serial.print("Bottom Camera Roll: ");
-//  Serial.println(m_rollFromVisionB);
-//  Serial.print("Bottom Camera Pitch: ");
-//  Serial.println(m_pitchFromVisionB);
-//  Serial.print("Bottom Camera X Translation: ");
-//  Serial.println(m_transXFromVisionB);
-//  Serial.print("Bottom Camera Y Translation: ");
-//  Serial.println(m_transYFromVisionB);
-//  Serial.print("Bottom Camera Z Translation: ");
-//  Serial.println(m_transZFromVisionB);
+  Serial.print("Yaw Error: ");
+  Serial.println(m_yawError);
+  Serial.print("Roll Error: " );
+  Serial.println(m_rollError);
+  Serial.print("Pitch Error: " );
+  Serial.println(m_pitchError);
+  Serial.print("Depth Error: " );
+  Serial.println(m_depthError);
+  
+  Serial.print("Yaw Control Output: ");
+  Serial.println(m_yawControlOutput);
+  Serial.print("Roll Control Output: " );
+  Serial.println(m_rollControlOutput);
+  Serial.print("Pitch Control Output: " );
+  Serial.println(m_pitchControlOutput);
+  Serial.print("Depth Control Output: " );
+  Serial.println(m_depthControlOutput);
+  Serial.println("-----------");
 }
 
 // ======================================================================================= //
@@ -747,8 +735,7 @@ void loop() {
   
   displayStatesToSerial();
 
-
-  // straight lines back and forth
+//  // straight lines back and forth
 //  long m_totalTimeElapsed = timestamp % 20000;
 //  if (m_totalTimeElapsed < 10000) {
 //    if (!stateStabilized) {
@@ -766,7 +753,7 @@ void loop() {
 //    m_yawControlOutput = 0;
 //  }
 
-  // turning in place
+//  // turning in place
 //  long m_totalTimeElapsed = timestamp % 40000;
 //  if (m_totalTimeElapsed < 10000) {
 //    m_desiredYaw = -90;
@@ -786,9 +773,38 @@ void loop() {
 //    rotate();
 //  }
 
-//  rotate();
+//  // straight lines at small powers
+//  if (m_totalTimeElapsed < 10000) {
+//    if (!stateStabilized) {
+//      m_translationControlOutput = 0;
+//    } else {
+//      m_translationControlOutput = 0.15;
+//    }
+//    m_yawControlOutput = 0;
+//  } else if (m_totalTimeElapsed >= 10000 && m_totalTimeElapsed < 20000) {
+//    if (!stateStabilized) {
+//      m_translationControlOutput = 0;
+//    } else {
+//      m_translationControlOutput = -0.1;
+//    }
+//    m_yawControlOutput = 0;
+//  } else if (m_totalTimeElapsed >= 20000 && m_totalTimeElapsed < 30000) {
+//    if (!stateStabilized) {
+//      m_translationControlOutput = 0;
+//    } else {
+//      m_translationControlOutput = 0.1;
+//    }
+//    m_yawControlOutput = 0;
+//  } else if (m_totalTimeElapsed >= 30000) {
+//    if (!stateStabilized) {
+//      m_translationControlOutput = 0;
+//    } else {
+//      m_translationControlOutput = -0.07;
+//    }
+//    m_yawControlOutput = 0;
+//  }
 
-//  // square waves
+  // square paths
   long m_totalTimeElapsed = timestamp % 90000;
   if (m_totalTimeElapsed < 10000) {
     m_desiredYaw = 0;
@@ -833,45 +849,13 @@ void loop() {
   }
 
   stabilize();
-
-// 0.15 and -0.1 are min speeds
-
-  // straight lines at small powers
-//  if (m_totalTimeElapsed < 10000) {
-//    if (!stateStabilized) {
-//      m_translationControlOutput = 0;
-//    } else {
-//      m_translationControlOutput = 0.15;
-//    }
-//    m_yawControlOutput = 0;
-//  } else if (m_totalTimeElapsed >= 10000 && m_totalTimeElapsed < 20000) {
-//    if (!stateStabilized) {
-//      m_translationControlOutput = 0;
-//    } else {
-//      m_translationControlOutput = -0.1;
-//    }
-//    m_yawControlOutput = 0;
-//  } else if (m_totalTimeElapsed >= 20000 && m_totalTimeElapsed < 30000) {
-//    if (!stateStabilized) {
-//      m_translationControlOutput = 0;
-//    } else {
-//      m_translationControlOutput = 0.1;
-//    }
-//    m_yawControlOutput = 0;
-//  } else if (m_totalTimeElapsed >= 30000) {
-//    if (!stateStabilized) {
-//      m_translationControlOutput = 0;
-//    } else {
-//      m_translationControlOutput = -0.07;
-//    }
-//    m_yawControlOutput = 0;
-//  }
+  rotate();
 
 //  directMotorControl(); // direct serial input to motors
   autonomousControl();  // autonomous update input to motors
-//  runMotors(); // actuate motors
+  runMotors(); // actuate motors
 
-//  sendSerial();
+  sendSerial();
 
   delay(LOOP_TIME_DELAY_MS);
 }
