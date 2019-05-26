@@ -39,6 +39,8 @@ The aerial control system consists of:
 
 Given time constraints for this project, autonomous flight never became a reality. However, [significant work](https://github.com/tedklin/Echo/tree/master/Megalodon/src/aerial) was done on flight scripting with the **[dronekit-python](https://github.com/dronekit/dronekit-python)** library. Plans to integrate image processing with dronekit were also developed, but never fully implemented.
 
+RC flight was successfully completed with the Eagle flight controller.
+
 ## Shared Hardware
 
 To communicate with the drone, an [RC receiver system](https://www.horizonhobby.com/product/airplanes/telemetry-15066--1/aircraft-receivers/ar8010t-8ch-air-telemetry-receiver-spmar8010t) was implemented. This was used for the wireless RC mode of the Megalodon, as well as for a failsafe for autonomous operation. 
