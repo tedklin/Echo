@@ -28,7 +28,7 @@ The vision system consists of:
 
 The [vision folder](https://github.com/tedklin/Echo/tree/master/Megalodon/src/vision) contains code for full 3D pose estimation of visual fiducial markers known as [AprilTags](https://april.eecs.umich.edu/software/apriltag), as well as modified colored object detection based off of [NerdyVision](https://github.com/tedklin/nerdyvision).
 
-The vision algorithm works in tandem with the underwater autonomous object retreival algorithm. We implemented a serial connection between the Raspberry Pi and the Arduino, which allows the Arduino to send data such as current robot pose and the Raspberry Pi to reply with data about the location and orientation of the object of interest.
+The [vision algorithm](https://github.com/tedklin/Echo/blob/master/Megalodon/src/vision/color/NerdyVision2019.py) works in tandem with the underwater autonomous object retreival algorithm. We implemented a serial connection between the Raspberry Pi and the Arduino, which allows the Arduino to send data such as current robot pose and the Raspberry Pi to reply with data about the location and orientation of the object of interest.
 
 ## Aerial Subsystem
 
