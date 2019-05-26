@@ -72,7 +72,7 @@ void instantiateIMU() {
 }
 
 float updateStateEstimation() {
-  imu::Vector<3> euler = bno.getVector(Adafruit_BNO055::VECTOR_EULER);
+  imu::Vector<3> euler = m_imu.getVector(Adafruit_BNO055::VECTOR_EULER);
   m_measuredYaw = euler.x();
   m_measuredRoll = euler.y();
   m_measuredPitch = euler.z();
@@ -86,6 +86,8 @@ float updateStateEstimation() {
   m_measuredRoll = 360 - m_measuredRoll;
   m_measuredRoll = fmod(m_measuredRoll, 360);
 }
+
+float m_yawError, m_rollError, m_pitchError;
 
 float stabilize() {
   m_yawError = m_desiredYaw - m_measuredYaw;
@@ -150,7 +152,7 @@ void displayStates() {
   Serial.print("Desired Yaw: ");
   Serial.println(m_desiredYaw);
   Serial.print("Desired Roll: ");
-  Serial.println(m_desireddRoll);
+  Serial.println(m_desiredRoll);
   Serial.print("Desired Pitch: ");
   Serial.println(m_desiredPitch);
 }
@@ -181,10 +183,9 @@ void displayOutputs() {
 }
 
 void setup() {
-  //Initalise the Serial communication and the RC RX Reader
   Serial.begin(115200);
   initializeMotors();
-  initializeIMU();
+  instantiateIMU();
   
   RC.begin();
 

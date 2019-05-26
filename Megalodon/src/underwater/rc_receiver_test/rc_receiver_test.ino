@@ -144,10 +144,10 @@ void loop() {
 //  } Serial.println(RC.getChannel(TOCHANNELPIN));
 
 //  for (uint8_t i = FROMCHANNELPIN; i < TOCHANNELPIN; i++) { 
-    Serial.print("Channel ");
-    Serial.print(2);
-    Serial.print(": ");
-    Serial.println(RC.getChannel(i));
+  Serial.print("Channel ");
+  Serial.print(2);
+  Serial.print(": ");
+  Serial.println(RC.getChannel(1));
 //  }
   Serial.println("");
 
