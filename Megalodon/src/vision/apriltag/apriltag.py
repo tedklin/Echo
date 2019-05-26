@@ -18,6 +18,8 @@ import collections
 import os
 import re
 import numpy
+import math
+import serial
 
 _HAVE_CV2 = False
 
@@ -554,6 +556,23 @@ def _draw_pose(overlay, camera_params, tag_size, pose, z_sign=1):
     for i, j in edges:
         cv2.line(overlay, ipoints[i], ipoints[j], (0, 255, 0), 1, 16)
 
+
+def readline(ser, buf):
+    i = buf.find(b"\n")
+    if i >= 0:
+        r = buf[:i+1]
+        buf = buf[i+1:]
+        return r
+    while True:
+        i = max(1, min(2048, ser.in_waiting))
+        data = ser.read(i)
+        i = data.find(b"\n")
+        if i >= 0:
+            r = buf + data[:i+1]
+            buf[0:] = data[i+1:]
+            return r
+        else:
+            buf.extend(data)
     
 
 ######################################################################
@@ -602,7 +621,17 @@ def main():
     window = 'Camera'
     cv2.namedWindow(window)
 
+    # ser = serial.Serial('/dev/cu.usbmodem14201', 9600) # Establish the connection on a specific port
+    # m_buf = bytearray()
+
     while True:
+        # thing = readline(ser, m_buf)
+        # print(thing)
+        # spliced = thing.split('#')
+        # print(spliced)
+        # yaw_at_capture_time = spliced[0]
+        # pitch_at_capture_time = spliced[1]
+        # roll_at_capture_time = spliced[2]
 
         success, orig = cap.read()
         if not success:
@@ -646,9 +675,21 @@ def main():
                 yaw = math.degrees(math.atan2(pose[0][1], pose[0][0]))
                 roll = math.degrees(math.atan2(-pose[2][0], math.sqrt(math.pow(pose[2][1], 2) + math.pow(pose[2][2], 2))))
                 pitch = math.degrees(math.atan2(pose[2][1], pose[2][2]))
-                print("Yaw: " + str(yaw))
-                print("Roll: " + str(roll))
-                print("Pitch: " + str(pitch))
+                translation_x = pose[3][0]
+                translation_y = pose[3][1]
+                translation_z = pose[3][2]
+
+                print("yaw: " + str(yaw))
+                print("roll: " + str(roll))
+                print("pitch: " + str(pitch))
+                print("translation_x: " + str(translation_x))
+                print("translation_y: " + str(translation_y))
+                print("translation_z: " + str(translation_z))
+
+                # message = "visYawB:" + str(yaw) + "&visPitchB:" + str(pitch) + "&visRollB:" + str(roll) + "&visXB:" + str(translation_x) + "&visYB:" + str(translation_y) + "&visZB:" + str(translation_z)
+                # print(message)
+                # ser.write(message.encode())
+                # print("message sent")
                 
             print()
 
