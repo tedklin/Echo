@@ -6,7 +6,7 @@
 
 ECHO Technologies intends to design and build a hybrid underwater/aerial vehicle that can be deployed autonomously and/or wirelessly by using cutting edge control software along with a stable drone platform that can be used to secretively inspect the ocean floor.
 
-Introducing the product of 8 months of hard work: **_the Megalodon_**.
+Introducing the product of 8 months of hard work: **_the Megalodon_** (media coming later).
 
 ## Underwater Subsystem
 
