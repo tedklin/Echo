@@ -16,9 +16,9 @@ The underwater control system consists of:
 
 All software for the Arduino can be found in the [underwater folder](https://github.com/tedklin/Echo/tree/master/Megalodon/src/underwater) of this repository. 
 
-**The main file that synthesizes all algorithms is *[navigation](https://github.com/tedklin/Echo/tree/master/Megalodon/src/underwater/navigation)*.**
+**The main file that synthesizes all algorithms is *[navigation](https://github.com/tedklin/Echo/tree/master/Megalodon/src/underwater/navigation/navigation.ino)*.**
 
-**There is also an option for RC control with stability assistance: *[teleop](https://github.com/tedklin/Echo/blob/master/Megalodon/src/underwater/teleop/teleop.ino)*.**
+**There is also an option for RC control with stability assistance: *[teleop](https://github.com/tedklin/Echo/blob/master/Megalodon/src/underwater/navigation/teleop.ino)*.**
 
 ## Vision Subsystem
 
