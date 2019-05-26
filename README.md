@@ -6,8 +6,6 @@
 
 ECHO Technologies intends to design and build a hybrid underwater/aerial vehicle that can be deployed autonomously and/or wirelessly by using cutting edge control software along with a stable drone platform that can be used to secretively inspect the ocean floor.
 
-Introducing the product of 8 months of hard work: **_the Megalodon_** (media coming later).
-
 ## Underwater Subsystem
 
 The underwater control system consists of:
@@ -39,7 +37,7 @@ The aerial control system consists of:
 - 4 [Electronic Speed Controllers](http://store-en.tmotor.com/goods.php?id=371)
 - a [GPS](https://store.mrobotics.io/mRo-GPS-u-Blox-Neo-M8N-HMC5983-Compass-p/mro-gps004-mr.htm)
 
-Given the tight time constraints for this project, autonomous flight never became a reality. However, [significant work](https://github.com/tedklin/Echo/tree/master/Megalodon/src/aerial) was done on flight scripting with the **[dronekit-python](https://github.com/dronekit/dronekit-python)** library. Plans to integrate image processing with dronekit were also developed, but never fully implemented.
+Given time constraints for this project, autonomous flight never became a reality. However, [significant work](https://github.com/tedklin/Echo/tree/master/Megalodon/src/aerial) was done on flight scripting with the **[dronekit-python](https://github.com/dronekit/dronekit-python)** library. Plans to integrate image processing with dronekit were also developed, but never fully implemented.
 
 ## Shared Hardware
 
