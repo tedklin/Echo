@@ -18,13 +18,15 @@ long m_totalTimeElapsed = 0;
 
 const float kDepthOfPool = 7; // in feet
 
+float resetYawConstant = 0;
+
 const float kYawP = 0.002; // 0.004 was good, 0.002 is better
 const float kYawI = 0;
 const float kYawD = 0.007;
-const float kPitchP = 0.01; // 0.005 was acceptable
+const float kPitchP = 0.005; // 0.005 was acceptable
 const float kPitchI = 0;
 const float kPitchD = 0;
-const float kRollP = 0.01;
+const float kRollP = 0.005;
 const float kRollI = 0;
 const float kRollD = 0;
 const float kDepthP = 0;
@@ -42,7 +44,7 @@ const float kTranslationI = 0;
 const float kTranslationD = 0;
 const float kRightTranslationOffset = 0.8;
 
-const float kYawThreshold = 5;
+const float kYawThreshold = 2;
 const float kPitchThreshold = 10;
 const float kRollThreshold = 10;
 const float kDepthThreshold = 5;
@@ -93,6 +95,9 @@ void instantiateIMU() {
     delay(5000);
   }
   delay(5000);
+
+  imu::Vector<3> euler = m_imu.getVector(Adafruit_BNO055::VECTOR_EULER);
+  resetYawConstant = euler.x();
   
   Serial.println("IMU INSTANTIATED");
 }
@@ -135,7 +140,7 @@ float m_measuredTemperature = 0;
 
 void updateIMU() {
   imu::Vector<3> euler = m_imu.getVector(Adafruit_BNO055::VECTOR_EULER);
-  m_measuredYaw = euler.x();
+  m_measuredYaw = euler.x() - resetYawConstant;
   m_measuredPitch = euler.y();
   m_measuredRoll = euler.z();
 
@@ -371,10 +376,15 @@ void autonomousControl() {
 
 //  m_horizontalLeftPower = 0;
 //  m_horizontalRightPower = 0;
-  m_verticalFrontLeftPower = -m_rollControlOutput + m_pitchControlOutput + m_depthControlOutput + kMaintainDepth;
-  m_verticalFrontRightPower = m_rollControlOutput + m_pitchControlOutput + m_depthControlOutput + kMaintainDepth;
-  m_verticalBackLeftPower = -m_rollControlOutput - m_pitchControlOutput + m_depthControlOutput + kMaintainDepth;
-  m_verticalBackRightPower = m_rollControlOutput - m_pitchControlOutput + m_depthControlOutput + kMaintainDepth;
+//  m_verticalFrontLeftPower = -m_rollControlOutput + m_pitchControlOutput + m_depthControlOutput + kMaintainDepth;
+//  m_verticalFrontRightPower = m_rollControlOutput + m_pitchControlOutput + m_depthControlOutput + kMaintainDepth;
+//  m_verticalBackLeftPower = -m_rollControlOutput - m_pitchControlOutput + m_depthControlOutput + kMaintainDepth;
+//  m_verticalBackRightPower = m_rollControlOutput - m_pitchControlOutput + m_depthControlOutput + kMaintainDepth;
+
+  m_verticalFrontLeftPower = -m_rollControlOutput + m_pitchControlOutput + kMaintainDepth;
+  m_verticalFrontRightPower = m_rollControlOutput + m_pitchControlOutput + kMaintainDepth;
+  m_verticalBackLeftPower = -m_rollControlOutput - m_pitchControlOutput + kMaintainDepth;
+  m_verticalBackRightPower = m_rollControlOutput - m_pitchControlOutput + kMaintainDepth;
 }
 
 /**
@@ -729,47 +739,104 @@ void loop() {
   
   m_totalTimeElapsed = timestamp - m_startTime;
   
-//  receiveSerial();
+  receiveSerial();
 //  simulate();
 
   updateStateEstimation();
   calculateControlOutputs();
   
-//  displayStatesToSerial();
+  displayStatesToSerial();
 
+
+  // straight lines back and forth
+//  long m_totalTimeElapsed = timestamp % 20000;
+//  if (m_totalTimeElapsed < 10000) {
+//    if (!stateStabilized) {
+//      m_translationControlOutput = 0;
+//    } else {
+//      m_translationControlOutput = 0.3;
+//    }
+//    m_yawControlOutput = 0;
+//  } else if (m_totalTimeElapsed >= 10000) {
+//    if (!stateStabilized) {
+//      m_translationControlOutput = 0;
+//    } else {
+//      m_translationControlOutput = -0.2;
+//    }
+//    m_yawControlOutput = 0;
+//  }
+
+  // turning in place
 //  long m_totalTimeElapsed = timestamp % 40000;
 //  if (m_totalTimeElapsed < 10000) {
 //    m_desiredYaw = -90;
-//  } else if (m_totalTimeElapsed > 10000 && m_totalTimeElapsed < 20000) {
+//    stabilize();
+//    rotate();
+//  } else if (m_totalTimeElapsed >= 10000 && m_totalTimeElapsed < 20000) {
 //    m_desiredYaw = 0;
-//  } else if (m_totalTimeElapsed > 20000 && m_totalTimeElapsed < 30000) {
+//    stabilize();
+//    rotate();
+//  } else if (m_totalTimeElapsed >= 20000 && m_totalTimeElapsed < 30000) {
 //    m_desiredYaw = 90;
-//  } else if (m_totalTimeElapsed > 30000) {
+//    stabilize();
+//    rotate();
+//  } else if (m_totalTimeElapsed >= 30000) {
 //    m_desiredYaw = 0;
+//    stabilize();
+//    rotate();
 //  }
 
-  stabilize();
 //  rotate();
 
-  long m_totalTimeElapsed = timestamp % 20000;
+//  // square waves
+  long m_totalTimeElapsed = timestamp % 90000;
   if (m_totalTimeElapsed < 10000) {
+    m_desiredYaw = 0;
+  } else if (m_totalTimeElapsed >= 10000 && m_totalTimeElapsed < 20000) {
     if (!stateStabilized) {
       m_translationControlOutput = 0;
     } else {
-      m_translationControlOutput = 0.3;
+      m_translationControlOutput = 0.2;
     }
     m_yawControlOutput = 0;
-  } else if (m_totalTimeElapsed >= 10000) {
+  } else if (m_totalTimeElapsed >= 20000 && m_totalTimeElapsed < 30000) {
+    m_desiredYaw = -90;
+  } else if (m_totalTimeElapsed >= 30000 && m_totalTimeElapsed < 40000) {
+     if (!stateStabilized) {
+      m_translationControlOutput = 0;
+    } else {
+      m_translationControlOutput = 0.2;
+    }
+    m_yawControlOutput = 0;
+  } else if (m_totalTimeElapsed >= 40000 && m_totalTimeElapsed < 43000) {
+    m_desiredYaw = -130;
+  } else if (m_totalTimeElapsed >= 43000 && m_totalTimeElapsed < 50000) {
+    m_desiredYaw = -179;
+  } else if (m_totalTimeElapsed >= 50000 && m_totalTimeElapsed < 60000) {
+     if (!stateStabilized) {
+      m_translationControlOutput = 0;
+    } else {
+      m_translationControlOutput = 0.2;
+    }
+    m_yawControlOutput = 0;
+  } else if (m_totalTimeElapsed >= 60000 && m_totalTimeElapsed < 70000) {
+    m_desiredYaw = 90;
+  } else if (m_totalTimeElapsed >= 70000 && m_totalTimeElapsed < 80000) {
     if (!stateStabilized) {
       m_translationControlOutput = 0;
     } else {
-      m_translationControlOutput = -0.2;
+      m_translationControlOutput = 0.2;
     }
     m_yawControlOutput = 0;
+  } else if (m_totalTimeElapsed >= 80000) {
+    m_desiredYaw = 0;
   }
+
+  stabilize();
 
 // 0.15 and -0.1 are min speeds
 
+  // straight lines at small powers
 //  if (m_totalTimeElapsed < 10000) {
 //    if (!stateStabilized) {
 //      m_translationControlOutput = 0;
