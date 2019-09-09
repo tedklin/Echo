@@ -58,6 +58,4 @@ Our final product was able to perform all aspects of the mission with tele-opera
 
 ![alt text](docs/pictures/megalodon_aerial.png)
 
-All in all, the mission was considered a success and heralded as one of the most impressive engineering feats our high school has ever seen.
-
 Here's a [link to a documentary](https://youtu.be/Fxlh2qCpnxg) created by Leonel Tafoya, our Media Director, which summarizes Echo Technologies' entire journey.
