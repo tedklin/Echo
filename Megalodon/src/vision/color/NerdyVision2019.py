@@ -11,7 +11,7 @@ import NerdyFunctions
 """2019 Carpa Initiative Object Image Processing on Raspberry Pi with Waterproof USB Camera"""
 __author__ = "tedlin"
 
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, NerdyConstants.FRAME_X)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, NerdyConstants.FRAME_Y)
@@ -55,7 +55,7 @@ def main():
             goal = NerdyFunctions.polygon(c, 0.025)
             M = cv2.moments(goal)
 
-            if area > NerdyConstants.MIN_GOAL_AREA and len(goal) == 4 and M['m00'] > 0:
+            if len(goal) == 4 and M['m00'] > 0:
                 cv_cx, cv_cy = NerdyFunctions.calc_center(M)
                 center = (cv_cx, cv_cy)
 

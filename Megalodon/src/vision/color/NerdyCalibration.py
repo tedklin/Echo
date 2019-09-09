@@ -11,7 +11,7 @@ import NerdyConstants
 __author__ = "tedlin"
 
 # Capture video from camera
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 
 # Calibration box dimensions
 CAL_AREA = 1600

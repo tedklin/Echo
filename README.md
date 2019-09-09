@@ -6,6 +6,8 @@
 
 ECHO Technologies intends to design and build a hybrid underwater/aerial vehicle that can be deployed autonomously and/or wirelessly by using cutting edge control software along with a stable drone platform that can be used to secretively inspect the ocean floor.
 
+![alt text](docs/pictures/megalodon_cad.png)
+
 ## Underwater Subsystem
 
 The underwater control system consists of:
@@ -46,3 +48,16 @@ RC flight was successfully completed with the Eagle flight controller.
 To communicate with the drone, an [RC receiver system](https://www.horizonhobby.com/product/airplanes/telemetry-15066--1/aircraft-receivers/ar8010t-8ch-air-telemetry-receiver-spmar8010t) was implemented. This was used for the wireless RC mode of the Megalodon, as well as for a failsafe for autonomous operation. 
 
 The claw that was used to grab objects was controlled by two [waterproof servos](https://www.bluerobotics.com/store/retired/hs-646wp/?fbclid=IwAR37Fxvrac2bqbgygsPXOxirx0ERk4Xt1Fn9HJPEAZ7LBNuF6v5u0TakOGY). These servos could be connected to either the RC receiver and the Arduino depending on desired mode of operation (human controlled or autonomous).
+
+
+## Results
+
+![alt text](docs/pictures/megalodon_underwater.png)
+
+Our final product was able to perform all aspects of the mission with tele-operated control, as well as specific actions autonomously. Since the framework for putting together the automatic actions was already designed, I firmly believe that we could have completed the entire mission autonomously if we had more testing and tuning time. 
+
+![alt text](docs/pictures/megalodon_aerial.png)
+
+All in all, the mission was considered a success and heralded as one of the most impressive engineering feats our high school has ever seen.
+
+Here's a [link to a documentary](https://youtu.be/Fxlh2qCpnxg) created by Leonel Tafoya, our Media Director, which summarizes Echo Technologies' entire journey.
